@@ -2,7 +2,8 @@ phina.globalize();
 
 const version = "1.0";
 
-const BATTLE_TIME = 200;
+// const BATTLE_TIME = 200;
+const BATTLE_TIME = 20;
 let countdownMax = BATTLE_TIME;
 let countdown = BATTLE_TIME;
 
@@ -1013,6 +1014,51 @@ phina.define('BattleScene', {
     step: 0,
     nextTurn: "player",
     restartFlg: false,
+    gameEnd: function () {
+        const self = this;
+        Label({
+            text: "タイムアップ！",
+            fontSize: 60,
+            fill: "white",
+            fontWeight: 800,
+            stroke: "black",
+            strokeWidth: 10,
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-4))
+        .tweener.wait(500)
+        .call(function () {
+            if (self.trainingMode) {
+                return;
+            }
+            if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
+                Label({
+                    text: "勝 利",
+                    fontSize: 150,
+                    fill: "white",
+                    stroke: "red",
+                    strokeWidth: 20,
+                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+            } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
+                Label({
+                    text: "敗 北",
+                    fontSize: 150,
+                    fill: "white",
+                    fontWeight: 800,
+                    stroke: "darkblue",
+                    strokeWidth: 20,
+                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+            } else {
+                Label({
+                    text: "引き分け",
+                    fontSize: 150,
+                    fill: "white",
+                    fontWeight: 800,
+                    stroke: "darkblue",
+                    strokeWidth: 20,
+                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+            }
+    
+        }).play();
+    },
     update: function() {
         const self = this;
 
@@ -1039,6 +1085,7 @@ phina.define('BattleScene', {
             if (self.enemy) {
                 self.enemy.setDirection("south");
             }
+            self.gameEnd();
             return;
         }
         countdown -= 1;
@@ -1102,8 +1149,14 @@ phina.define('BattleMenuScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(7))
         .on("pointstart", function() {
+            if (param.battleScene.trainingMode) {
+                return;
+            }
             App.pushScene(ProgramingScene({targetProgram: enemyProgram}));
         });
+        if (param.battleScene.trainingMode) {
+            saveButton.disable();
+        }
 
         const gotoTitleButton = BasicButton({
             text: "タイトルにもどる",
