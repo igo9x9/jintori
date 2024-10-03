@@ -1,0 +1,50 @@
+{
+    "frame": {
+        "width": 64,
+        "height": 64,
+        "cols": 3,
+        "rows": 4
+    },
+    "animations" : {
+        "south": {
+            "frames": [1],
+            "next": "south",
+            "frequency": 3
+        },
+        "workToSouth": {
+            "frames": [0,1,2],
+            "next": "workToSouth",
+            "frequency": 3
+        },
+        "west": {
+            "frames": [4],
+            "next": "west",
+            "frequency": 3
+        },
+        "workToWest": {
+            "frames": [3,4,5],
+            "next": "workToWest",
+            "frequency": 3
+        },
+        "east": {
+            "frames": [7],
+            "next": "east",
+            "frequency": 3
+        },
+        "workToEast": {
+            "frames": [6,7,8],
+            "next": "workToEast",
+            "frequency": 3
+        },
+        "north": {
+            "frames": [10],
+            "next": "north",
+            "frequency": 3
+        },
+        "workToNorth": {
+            "frames": [9,10,11],
+            "next": "workToNorth",
+            "frequency": 3
+        }
+    }
+}
