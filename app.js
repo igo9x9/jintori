@@ -2,8 +2,7 @@ phina.globalize();
 
 const version = "1.0";
 
-// const BATTLE_TIME = 200;
-const BATTLE_TIME = 20;
+const BATTLE_TIME = 200;
 let countdownMax = BATTLE_TIME;
 let countdown = BATTLE_TIME;
 
