@@ -26,9 +26,11 @@ ASSETS = {
         "myArea": "img/blocks/myArea.png",
         "putStone": "img/blocks/putStone.png",
         "watch": "img/blocks/watch.png",
-        "flagA": "img/blocks/flagA.png",
+        "flagAon": "img/blocks/flagAon.png",
+        "flagAoff": "img/blocks/flagAoff.png",
         "flagACheck": "img/blocks/flagACheck.png",
-        "flagB": "img/blocks/flagB.png",
+        "flagBon": "img/blocks/flagBon.png",
+        "flagBoff": "img/blocks/flagBoff.png",
         "flagBCheck": "img/blocks/flagBCheck.png",
         "enemy": "img/blocks/enemy.png",
         "turnToEnemy": "img/blocks/turnToEnemy.png",
@@ -65,16 +67,18 @@ const BLOCK_NAME = {
     putStone: "I",
     goBack: "J",
     watch: "K",
-    flagA: "L",
+    flagAon: "L",
     flagACheck: "M",
     enemy: "N",
     turnToEnemy: "O",
-    flagB: "P",
+    flagBon: "P",
     flagBCheck: "Q",
     goRight: "R",
     goLeft: "S",
     stopRight: "T",
     stopLeft: "U",
+    flagAoff: "V",
+    flagBoff: "W",
 };
 
 
@@ -109,7 +113,7 @@ phina.define('TitleScene', {
         BasicButton({
             width: 300,
             height: 60,
-            text: "CPUと対戦",
+            text: "はじめる",
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(4.5))
         .on("pointstart", function() {
             self.exit("EnemySelectScene");
@@ -118,7 +122,7 @@ phina.define('TitleScene', {
         BasicButton({
             width: 300,
             height: 60,
-            text: "一人で訓練",
+            text: "トレーニング",
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6))
         .on("pointstart", function() {
             self.exit("BattleScene", {trainingMode: true, enemyLevel: 1});
@@ -171,7 +175,7 @@ phina.define('EnemySelectScene', {
         }).addChildTo(enemy1Button).addChildTo(enemy1Button).setPosition(100, 100);
         enemy1Button.setInteractive(true);
         enemy1Button.on("pointstart", function() {
-            enemyProgram = new Program("enemy");
+            enemyProgram = new Program("enemy", false);
             enemyProgram.import("0yvK5hN4cCmGJehhjU6_tigYNoVo66gksYO9QiYG");
             self.exit("BattleScene", {trainingMode: false, enemyLevel: 1});
         });
@@ -202,7 +206,7 @@ phina.define('EnemySelectScene', {
         }).addChildTo(enemy2Button).addChildTo(enemy2Button).setPosition(100, 100);
         enemy2Button.setInteractive(true);
         enemy2Button.on("pointstart", function() {
-            enemyProgram = new Program("enemy");
+            enemyProgram = new Program("enemy", false);
             enemyProgram.import("0yvK5hN4cCmGOSAXCZOpzsj9M4We0JptdGQwzeBlKNPyA51U4F");
             self.exit("BattleScene", {trainingMode: false, enemyLevel: 2});
         });
@@ -233,7 +237,7 @@ phina.define('EnemySelectScene', {
         }).addChildTo(enemy3Button).addChildTo(enemy3Button).setPosition(100, 100);
         enemy3Button.setInteractive(true);
         enemy3Button.on("pointstart", function() {
-            enemyProgram = new Program("enemy");
+            enemyProgram = new Program("enemy", false);
             enemyProgram.import("0yvK5hN4cCmGOSAXCZOpzsj9M4We0JptdGQwzeBlKNPyA51U4F");
             self.exit("BattleScene", {trainingMode: false, enemyLevel: 3});
         });
@@ -437,9 +441,11 @@ phina.define('BlockSelectScene', {
         addSampleBlock(BLOCK_NAME.turnLeft, this.gridX.span(13), this.gridY.span(7.5));
 
         addSampleBlock(BLOCK_NAME.putStone, this.gridX.span(3), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagA, this.gridX.span(5), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagB, this.gridX.span(7), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.turnToEnemy, this.gridX.span(9), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagAon, this.gridX.span(5), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagAoff, this.gridX.span(7), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagBon, this.gridX.span(9), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagBoff, this.gridX.span(11), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.turnToEnemy, this.gridX.span(13), this.gridY.span(9));
 
         // 判定系
         addSampleBlock(BLOCK_NAME.stop, this.gridX.span(3), this.gridY.span(11));
@@ -874,7 +880,7 @@ phina.define('BattleScene', {
  
         // プログラミングボタン
         const playerEditButton = BasicButton({
-            text: "プログラムする",
+            text: "プログラミング",
             width: 220,
             height: 50,
             primary: true,
@@ -997,7 +1003,7 @@ phina.define('BattleScene', {
         if (playerProgram) {
             playerProgram.restart();
         } else {
-            playerProgram = new Program("player");
+            playerProgram = new Program("player", param.trainingMode);
             // ワーク領域のプログラムを読み込む
             const data = window.localStorage.getItem("work");
             if (data) {
@@ -1007,16 +1013,19 @@ phina.define('BattleScene', {
             }
         }
 
-        // トレーニングモードではないのなら敵を生成する
-        // if (!param.trainingMode) {
-            self.enemy = Cat({playerOrEnemy: "enemy", enemyLevel: param.enemyLevel, x:5, y:1, direction: "south", field: fieldPanel, catPanel: catPanel});
-            catPanel.enemy = self.enemy;
-            if (enemyProgram) {
-                enemyProgram.restart();
-            } else {
-                enemyProgram = new Program("enemy");
+        // 敵を生成する
+        self.enemy = Cat({playerOrEnemy: "enemy", enemyLevel: param.enemyLevel, x:5, y:1, direction: "south", field: fieldPanel, catPanel: catPanel});
+        catPanel.enemy = self.enemy;
+        if (!enemyProgram || param.trainingMode) {
+            enemyProgram = new Program("enemy", param.trainingMode);
+            // ワーク領域のプログラムを読み込む
+            const data = window.localStorage.getItem("workEnemy");
+            if (data) {
+                enemyProgram.import(data);
             }
-        // }
+        } else {
+            enemyProgram.restart();
+        }
 
         // カウントダウン
         const countdownPanel = RectangleShape({
@@ -1104,7 +1113,7 @@ phina.define('BattleScene', {
     gameStart: function () {
         const self = this;
         const readyLabel = Label({
-            text: "Ready",
+            text: "よ～い",
             fontSize: 60,
             fill: "white",
             fontWeight: 800,
@@ -1112,13 +1121,13 @@ phina.define('BattleScene', {
             strokeWidth: 10,
         }).addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
         const goLabel = Label({
-            text: "GO!",
+            text: "開始",
             fontSize: 110,
             fill: "white",
             fontWeight: 800,
             stroke: "black",
             strokeWidth: 10,
-        }).addChildTo(self).setPosition(this.gridX.center(-12), this.gridY.center(-0.5));
+        }).addChildTo(self).setPosition(this.gridX.center(-13), this.gridY.center(-0.5));
         readyLabel.tweener
             .to({x: this.gridX.center()}, 100, "easeOut")
             .wait(600)
@@ -1144,17 +1153,10 @@ phina.define('BattleScene', {
         }
 
         this.step += 1;
-        if (this.trainingMode) {
-            if (this.step < 30) {
-                return;
-            }
-        } else {
-            if (this.step < 15) {
-                return;
-            }
+        if (this.step < 15) {
+            return;
         }
         this.step = 0;
-
 
         if (countdown <= 0) {
             self.countArea();
@@ -1170,9 +1172,7 @@ phina.define('BattleScene', {
 
         if (this.nextTurn === "player") {
             this.applyOneStep(playerProgram, self.player, self.enemy);
-            if (!this.trainingMode) {
-                this.nextTurn = "enemy";
-            }
+            this.nextTurn = "enemy";
         } else {
             this.applyOneStep(enemyProgram, self.enemy, self.player);
             this.nextTurn = "player";
@@ -1229,7 +1229,7 @@ phina.define('BattleMenuScene', {
             // if (param.battleScene.trainingMode) {
                 // return;
             // }
-            App.pushScene(ProgramingScene({targetProgram: enemyProgram}));
+            App.pushScene(ProgramingScene({targetProgram: enemyProgram, trainingMode: param.battleScene.trainingMode}));
         });
         // if (param.battleScene.trainingMode) {
             // saveButton.disable();
@@ -1286,12 +1286,6 @@ phina.define('ProgramingMenuScene', {
             cornerRadius: 10,
         }).addChildTo(this);
 
-        // const label = Label({
-        //     fontSize: 25,
-        //     fill: "black",
-        //     fontWeight: 800,
-        // }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(3));
-
         // 全削除ボタン
         const clearButton = BasicButton({
             text: "プログラムをクリア",
@@ -1300,7 +1294,11 @@ phina.define('ProgramingMenuScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(4))
         .on("pointstart", function() {
-            playerProgram.clear();
+            if (param.playerOrEnemy === "player") {
+                playerProgram.clear();
+            } else {
+                enemyProgram.clear();
+            }
             App.pushScene(MessageDialogScene({message: "プログラムを消去しました。"}));
         });
 
@@ -1312,7 +1310,7 @@ phina.define('ProgramingMenuScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(6))
         .on("pointstart", function() {
-            App.pushScene(SaveAndLoadScene({mode: "save"}));
+            App.pushScene(SaveAndLoadScene({mode: "save", playerOrEnemy: param.playerOrEnemy}));
         });
 
         // ロードボタン
@@ -1323,7 +1321,7 @@ phina.define('ProgramingMenuScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(8))
         .on("pointstart", function() {
-            App.pushScene(SaveAndLoadScene({mode: "load"}));
+            App.pushScene(SaveAndLoadScene({mode: "load", playerOrEnemy: param.playerOrEnemy}));
         });
 
         // シェアボタン
@@ -1381,7 +1379,7 @@ phina.define('ProgramingScene', {
             offset: blocksPanel.height / 2 * -1 + 32,
         });
 
-        if (param.targetProgram === playerProgram) {
+        if (param.targetProgram === playerProgram || param.trainingMode) {
             BasicButton({
                 text: "その他",
                 width: 100,
@@ -1389,7 +1387,7 @@ phina.define('ProgramingScene', {
             }).addChildTo(self)
             .setPosition(self.gridX.center(5), self.gridY.span(15.2))
             .on("pointstart", function() {
-                App.pushScene(ProgramingMenuScene());
+                App.pushScene(ProgramingMenuScene({playerOrEnemy: (param.targetProgram === playerProgram ? "player" : "enemy")}));
             });
         }
 
@@ -1406,6 +1404,10 @@ phina.define('ProgramingScene', {
                 // ワーク領域にプログラムを保存
                 const data = playerProgram.export();
                 window.localStorage.setItem("work", data);
+            } else {
+                // ワーク領域にプログラムを保存
+                const data = enemyProgram.export();
+                window.localStorage.setItem("workEnemy", data);
             }
             self.exit("BattleScene", {trainingMode: param.trainingMode, enemyLevel: param.enemyLevel});
         });
@@ -1505,14 +1507,18 @@ phina.define('SaveAndLoadScene', {
         }
 
         function save(fileNumber) {
-            const data = playerProgram.export();
+            const data = param.playerOrEnemy === "player" ? playerProgram.export() : enemyProgram.export();
             window.localStorage.setItem("data" + fileNumber, data);
             App.pushScene(MessageDialogScene({message: "保存しました。"}));
         }
 
         function load(fileNumber) {
             const data = window.localStorage.getItem("data" + fileNumber);
-            playerProgram.import(data);
+            if (param.playerOrEnemy === "player") {
+                playerProgram.import(data);
+            } else {
+                enemyProgram.import(data);
+            }
             App.pushScene(MessageDialogScene({message: "読み込みました。"}));
         }
 
@@ -1623,7 +1629,7 @@ phina.define('BasicButton', {
 let playerProgram;
 let enemyProgram;
 
-function Program(playerOrEnemy) {
+function Program(playerOrEnemy, trainingMode) {
 
     const self = this;
 
@@ -1647,7 +1653,7 @@ function Program(playerOrEnemy) {
                     start.arrowOK = "down";
                     row.push(start);
                 } else {
-                    row.push(Block({name: BLOCK_NAME.empty, sampleMode: false, playerOrEnemy: playerOrEnemy}));
+                    row.push(Block({name: BLOCK_NAME.empty, sampleMode: false, playerOrEnemy: playerOrEnemy, trainingMode: trainingMode}));
                 }
             });
         });
@@ -1892,7 +1898,11 @@ phina.define('Block', {
         this.setInteractive(true);
 
         this.on("pointstart", function() {
-            if (self.sampleMode || params.playerOrEnemy === "enemy") {
+            // if (self.sampleMode || params.playerOrEnemy === "enemy") {
+            if (self.sampleMode) {
+                return;
+            }
+            if (!params.trainingMode && params.playerOrEnemy === "enemy") {
                 return;
             }
             App.pushScene(BlockSelectScene({block: self}));
@@ -2016,21 +2026,39 @@ phina.define('Block', {
             if (self.name === BLOCK_NAME.watch) {
                 return (countdown / countdownMax) < 0.5;
             }
-            // フラグＡのトグル
-            if (self.name === BLOCK_NAME.flagA) {
+            // フラグＡを立てる
+            if (self.name === BLOCK_NAME.flagAon) {
                 if (target.playerOrEnemy === "player") {
-                    playerProgramingFlgA = !playerProgramingFlgA;
+                    playerProgramingFlgA = true;
                 } else {
-                    enemyProgramingFlgA = !enemyProgramingFlgA;
+                    enemyProgramingFlgA = true;
                 }
                 return true;
             }
-            // フラグＢのトグル
-            if (self.name === BLOCK_NAME.flagB) {
+            // フラグＡを寝かす
+            if (self.name === BLOCK_NAME.flagAoff) {
                 if (target.playerOrEnemy === "player") {
-                    playerProgramingFlgB = !playerProgramingFlgB;
+                    playerProgramingFlgA = false;
                 } else {
-                    enemyProgramingFlgB = !enemyProgramingFlgB;
+                    enemyProgramingFlgA = false;
+                }
+                return true;
+            }
+            // フラグＢを立てる
+            if (self.name === BLOCK_NAME.flagBon) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgB = true;
+                } else {
+                    enemyProgramingFlgB = true;
+                }
+                return true;
+            }
+            // フラグＢを寝かす
+            if (self.name === BLOCK_NAME.flagBoff) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgB = false;
+                } else {
+                    enemyProgramingFlgB = false;
                 }
                 return true;
             }
@@ -2172,9 +2200,14 @@ phina.define('Block', {
                 self.description = "残り時間が半分以下なら、青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
-            } else if (name === BLOCK_NAME.flagA) {
-                self.setImage("flagA");
-                self.description = "フラグＡがオフならオン、オンならオフにする。フラグとは、オンとオフを記憶しておく変数。";
+            } else if (name === BLOCK_NAME.flagAon) {
+                self.setImage("flagAon");
+                self.description = "フラグＡをオンにする。フラグとは、オンとオフを記憶しておく変数。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagAoff) {
+                self.setImage("flagAoff");
+                self.description = "フラグＡをオフにする。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagACheck) {
@@ -2182,9 +2215,14 @@ phina.define('Block', {
                 self.description = "フラグＡがオンなら青矢印へ、オフなら赤矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
-            } else if (name === BLOCK_NAME.flagB) {
-                self.setImage("flagB");
-                self.description = "フラグＢがオフならオン、オンならオフにする。";
+            } else if (name === BLOCK_NAME.flagBon) {
+                self.setImage("flagBon");
+                self.description = "フラグＢをオンにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagBoff) {
+                self.setImage("flagBoff");
+                self.description = "フラグＢをオフにする。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagBCheck) {
@@ -2214,12 +2252,12 @@ phina.define('Block', {
                 self.turn = 1;
             } else if (name === BLOCK_NAME.stopRight) {
                 self.setImage("stopRight");
-                self.description = "右斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。障害物があり前進できない場合、赤矢印へ。";
+                self.description = "右斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.stopLeft) {
                 self.setImage("stopLeft");
-                self.description = "左斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。障害物があり前進できない場合、赤矢印へ。";
+                self.description = "左斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
