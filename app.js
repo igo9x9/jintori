@@ -121,7 +121,7 @@ phina.define('TitleScene', {
             text: "一人で訓練",
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6))
         .on("pointstart", function() {
-            self.exit("BattleScene", {trainingMode: true});
+            self.exit("BattleScene", {trainingMode: true, enemyLevel: 1});
         });
 
     },
@@ -1008,7 +1008,7 @@ phina.define('BattleScene', {
         }
 
         // トレーニングモードではないのなら敵を生成する
-        if (!param.trainingMode) {
+        // if (!param.trainingMode) {
             self.enemy = Cat({playerOrEnemy: "enemy", enemyLevel: param.enemyLevel, x:5, y:1, direction: "south", field: fieldPanel, catPanel: catPanel});
             catPanel.enemy = self.enemy;
             if (enemyProgram) {
@@ -1016,7 +1016,7 @@ phina.define('BattleScene', {
             } else {
                 enemyProgram = new Program("enemy");
             }
-        }
+        // }
 
         // カウントダウン
         const countdownPanel = RectangleShape({
@@ -1049,6 +1049,7 @@ phina.define('BattleScene', {
         };
 
         self.updateCountdown();
+        self.gameStart();
 
     },
     step: 0,
@@ -1099,10 +1100,46 @@ phina.define('BattleScene', {
     
         }).play();
     },
+    gameStartFlg: false,
+    gameStart: function () {
+        const self = this;
+        const readyLabel = Label({
+            text: "Ready",
+            fontSize: 60,
+            fill: "white",
+            fontWeight: 800,
+            stroke: "black",
+            strokeWidth: 10,
+        }).addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
+        const goLabel = Label({
+            text: "GO!",
+            fontSize: 110,
+            fill: "white",
+            fontWeight: 800,
+            stroke: "black",
+            strokeWidth: 10,
+        }).addChildTo(self).setPosition(this.gridX.center(-12), this.gridY.center(-0.5));
+        readyLabel.tweener
+            .to({x: this.gridX.center()}, 100, "easeOut")
+            .wait(600)
+            .call(function () {
+                goLabel.tweener.to({x: self.gridX.center()}, 100, "easeOut").play();
+            })
+            .wait(800)
+            .call(function () {
+                readyLabel.remove();
+                goLabel.remove();
+                self.gameStartFlg = true;
+            }).play();
+    },
     update: function() {
         const self = this;
 
         if (!playerProgram) {
+            return;
+        }
+
+        if (!self.gameStartFlg) {
             return;
         }
 
@@ -1189,14 +1226,14 @@ phina.define('BattleMenuScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(7))
         .on("pointstart", function() {
-            if (param.battleScene.trainingMode) {
-                return;
-            }
+            // if (param.battleScene.trainingMode) {
+                // return;
+            // }
             App.pushScene(ProgramingScene({targetProgram: enemyProgram}));
         });
-        if (param.battleScene.trainingMode) {
-            saveButton.disable();
-        }
+        // if (param.battleScene.trainingMode) {
+            // saveButton.disable();
+        // }
 
         const gotoTitleButton = BasicButton({
             text: "タイトルにもどる",
