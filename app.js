@@ -32,6 +32,10 @@ ASSETS = {
         "flagBCheck": "img/blocks/flagBCheck.png",
         "enemy": "img/blocks/enemy.png",
         "turnToEnemy": "img/blocks/turnToEnemy.png",
+        "goRight": "img/blocks/goRight.png",
+        "goLeft": "img/blocks/goLeft.png",
+        "stopRight": "img/blocks/stopRight.png",
+        "stopLeft": "img/blocks/stopLeft.png",
 
         "player": "img/player.png",
         "enemy1": "img/enemy1.png",
@@ -67,6 +71,10 @@ const BLOCK_NAME = {
     turnToEnemy: "O",
     flagB: "P",
     flagBCheck: "Q",
+    goRight: "R",
+    goLeft: "S",
+    stopRight: "T",
+    stopLeft: "U",
 };
 
 
@@ -417,29 +425,33 @@ phina.define('BlockSelectScene', {
         }
 
         // 特殊もの
-        addSampleBlock(BLOCK_NAME.empty, this.gridX.span(3), this.gridY.span(6));
-        addSampleBlock(BLOCK_NAME.non, this.gridX.span(5), this.gridY.span(6));
+        addSampleBlock(BLOCK_NAME.empty, this.gridX.span(3), this.gridY.span(5.5));
+        addSampleBlock(BLOCK_NAME.non, this.gridX.span(5), this.gridY.span(5.5));
 
         // アクション系
-        addSampleBlock(BLOCK_NAME.forward, this.gridX.span(3), this.gridY.span(8));
-        addSampleBlock(BLOCK_NAME.goBack, this.gridX.span(5), this.gridY.span(8));
-        addSampleBlock(BLOCK_NAME.turnRight, this.gridX.span(7), this.gridY.span(8));
-        addSampleBlock(BLOCK_NAME.turnLeft, this.gridX.span(9), this.gridY.span(8));
-        addSampleBlock(BLOCK_NAME.putStone, this.gridX.span(11), this.gridY.span(8));
-        addSampleBlock(BLOCK_NAME.flagA, this.gridX.span(13), this.gridY.span(8));
+        addSampleBlock(BLOCK_NAME.forward, this.gridX.span(3), this.gridY.span(7.5));
+        addSampleBlock(BLOCK_NAME.goRight, this.gridX.span(5), this.gridY.span(7.5));
+        addSampleBlock(BLOCK_NAME.goLeft, this.gridX.span(7), this.gridY.span(7.5));
+        addSampleBlock(BLOCK_NAME.goBack, this.gridX.span(9), this.gridY.span(7.5));
+        addSampleBlock(BLOCK_NAME.turnRight, this.gridX.span(11), this.gridY.span(7.5));
+        addSampleBlock(BLOCK_NAME.turnLeft, this.gridX.span(13), this.gridY.span(7.5));
 
-        addSampleBlock(BLOCK_NAME.flagB, this.gridX.span(3), this.gridY.span(9.5));
-        addSampleBlock(BLOCK_NAME.turnToEnemy, this.gridX.span(5), this.gridY.span(9.5));
+        addSampleBlock(BLOCK_NAME.putStone, this.gridX.span(3), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagA, this.gridX.span(5), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.flagB, this.gridX.span(7), this.gridY.span(9));
+        addSampleBlock(BLOCK_NAME.turnToEnemy, this.gridX.span(9), this.gridY.span(9));
 
         // 判定系
-        addSampleBlock(BLOCK_NAME.stop, this.gridX.span(3), this.gridY.span(11.5));
-        addSampleBlock(BLOCK_NAME.random1, this.gridX.span(5), this.gridY.span(11.5));
-        addSampleBlock(BLOCK_NAME.myArea, this.gridX.span(7), this.gridY.span(11.5));
-        addSampleBlock(BLOCK_NAME.watch, this.gridX.span(9), this.gridY.span(11.5));
-        addSampleBlock(BLOCK_NAME.flagACheck, this.gridX.span(11), this.gridY.span(11.5));
-        addSampleBlock(BLOCK_NAME.flagBCheck, this.gridX.span(13), this.gridY.span(11.5));
+        addSampleBlock(BLOCK_NAME.stop, this.gridX.span(3), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.stopRight, this.gridX.span(5), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.stopLeft, this.gridX.span(7), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.random1, this.gridX.span(9), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.myArea, this.gridX.span(11), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.watch, this.gridX.span(13), this.gridY.span(11));
 
-        addSampleBlock(BLOCK_NAME.enemy, this.gridX.span(3), this.gridY.span(13));
+        addSampleBlock(BLOCK_NAME.flagACheck, this.gridX.span(3), this.gridY.span(12.5));
+        addSampleBlock(BLOCK_NAME.flagBCheck, this.gridX.span(5), this.gridY.span(12.5));
+        addSampleBlock(BLOCK_NAME.enemy, this.gridX.span(7), this.gridY.span(12.5));
 
         markFirstSelectedBlock();
         moveSelectMark();
@@ -498,16 +510,36 @@ phina.define("Cat", {
         this.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
 
         // 外壁にぶつかる？
-        self.bumpWall = function (direction) {
+        self.bumpWall = function (direction, rightOrLeft) {
             let x = self.nx, y = self.ny;
             if (direction === "north") {
                 y -= 1;
+                if (rightOrLeft === "right") {
+                    x += 1;
+                } else if (rightOrLeft === "left") {
+                    x -= 1;
+                }
             } else if (direction === "east") {
                 x += 1;
+                if (rightOrLeft === "right") {
+                    y += 1;
+                } else if (rightOrLeft === "left") {
+                    y -= 1;
+                }
             } else if (direction === "south") {
                 y += 1;
+                if (rightOrLeft === "right") {
+                    x -= 1;
+                } else if (rightOrLeft === "left") {
+                    x += 1;
+                }
             } else if (direction === "west") {
                 x -= 1;
+                if (rightOrLeft === "right") {
+                    y -= 1;
+                } else if (rightOrLeft === "left") {
+                    y += 1;
+                }
             }
             // 外壁
             if (battleField[y][x] && battleField[y][x].name === "wall") {
@@ -606,84 +638,82 @@ phina.define("Cat", {
         }
 
         // 前進
-        self.moveToSouth = function() {
-            ss.gotoAndPlay("workToSouth");
-            if (self.bumpWall("south")) {
+
+        function moving(direction, rightOrLeft, xx, yy) {
+            if (self.bumpWall(direction, rightOrLeft)) {
                 self.tweener
-                .to({y: param.field.gridY.span(self.ny + 0.5)}, moveSpeed/2)
-                .to({y: param.field.gridY.span(self.ny)}, 100)
-                .call(function() {ss.gotoAndPlay("south");})
+                .to({
+                    x: param.field.gridX.span(self.nx + xx/2),
+                    y: param.field.gridY.span(self.ny + yy/2)
+                }, moveSpeed/2)
+                .to({
+                    x: param.field.gridX.span(self.nx),
+                    y: param.field.gridY.span(self.ny)
+                }, 100)
+                .call(function() {ss.gotoAndPlay(direction);})
                 .play();
                 return;
             }
             self.tweener
-                .to({y: param.field.gridY.span(self.ny + 1)}, moveSpeed)
+                .to({
+                    x: param.field.gridX.span(self.nx + xx),
+                    y: param.field.gridY.span(self.ny + yy)
+                }, moveSpeed)
                 .call(function() {
-                    self.ny += 1;
-                    ss.gotoAndPlay("south");
+                    self.nx += xx;
+                    self.ny += yy;
+                    ss.gotoAndPlay(direction);
                     addArea();
                 })
                 .play();
-        };
+        }
 
-        self.moveToNorth = function() {
+        self.moveToNorth = function(rightOrLeft) {
             ss.gotoAndPlay("workToNorth");
-            if (self.bumpWall("north")) {
-                self.tweener
-                .to({y: param.field.gridY.span(self.ny - 0.5)}, moveSpeed/2)
-                .to({y: param.field.gridY.span(self.ny)}, 100)
-                .call(function() {ss.gotoAndPlay("north");})
-                .play();
-                return;
+            let xx = 0;
+            let yy = -1;
+            if (rightOrLeft === "right") {
+                xx = 1;
+            } else if (rightOrLeft === "left") {
+                xx = -1;
             }
-            self.tweener
-                .to({y: param.field.gridY.span(self.ny - 1)}, moveSpeed)
-                .call(function() {
-                    self.ny -= 1;
-                    ss.gotoAndPlay("north");
-                    addArea();
-                })
-                .play();
+            moving("north", rightOrLeft, xx, yy);
         };
 
-        self.moveToWest = function() {
-            ss.gotoAndPlay("workToWest");
-            if (self.bumpWall("west")) {
-                self.tweener
-                .to({x: param.field.gridX.span(self.nx - 0.5)}, moveSpeed/2)
-                .to({x: param.field.gridX.span(self.nx)}, 100)
-                .call(function() {ss.gotoAndPlay("west");})
-                .play();
-                return;
-            }
-            self.tweener
-                .to({x: param.field.gridX.span(self.nx - 1)}, moveSpeed)
-                .call(function() {
-                    self.nx -= 1;
-                    ss.gotoAndPlay("west");
-                    addArea();
-                })
-                .play();
-        };
-
-        self.moveToEast = function() {
+        self.moveToEast = function(rightOrLeft) {
             ss.gotoAndPlay("workToEast");
-            if (self.bumpWall("east")) {
-                self.tweener
-                .to({x: param.field.gridX.span(self.nx + 0.5)}, moveSpeed/2)
-                .to({x: param.field.gridX.span(self.nx)}, 100)
-                .call(function() {ss.gotoAndPlay("east");})
-                .play();
-                return;
+            let xx = 1;
+            let yy = 0;
+            if (rightOrLeft === "right") {
+                yy = 1;
+            } else if (rightOrLeft === "left") {
+                yy = -1;
             }
-            self.tweener
-                .to({x: param.field.gridX.span(self.nx + 1)}, moveSpeed)
-                .call(function() {
-                    self.nx += 1;
-                    ss.gotoAndPlay("east");
-                    addArea();
-                })
-                .play();
+            moving("east", rightOrLeft, xx, yy);
+        };
+
+        self.moveToWest = function(rightOrLeft) {
+            ss.gotoAndPlay("workToWest");
+            let xx = -1;
+            let yy = 0;
+            if (rightOrLeft === "right") {
+                yy = -1;
+            } else if (rightOrLeft === "left") {
+                yy = 1;
+            }
+            moving("west", rightOrLeft, xx, yy);
+        };
+
+        self.moveToSouth = function(rightOrLeft) {
+            ss.gotoAndPlay("workToSouth");
+            let xx = 0;
+            let yy = 1;
+            if (rightOrLeft === "right") {
+                xx = -1;
+            } else if (rightOrLeft === "left") {
+                xx = 1;
+            }
+            moving("south", rightOrLeft, xx, yy);
         };
 
         // 後退
@@ -1840,6 +1870,32 @@ phina.define('Block', {
                 }
                 return true;
             }
+            // 右斜め前
+            if (self.name === BLOCK_NAME.goRight) {
+                if (target.direction === "north") {
+                    target.moveToNorth("right");
+                } else if (target.direction === "west") {
+                    target.moveToWest("right");
+                } else if (target.direction === "east") {
+                    target.moveToEast("right");
+                } else if (target.direction === "south") {
+                    target.moveToSouth("right");
+                }
+                return true;
+            }
+            // 左斜め前
+            if (self.name === BLOCK_NAME.goLeft) {
+                if (target.direction === "north") {
+                    target.moveToNorth("left");
+                } else if (target.direction === "west") {
+                    target.moveToWest("left");
+                } else if (target.direction === "east") {
+                    target.moveToEast("left");
+                } else if (target.direction === "south") {
+                    target.moveToSouth("left");
+                }
+                return true;
+            }
             // 後退
             if (self.name === BLOCK_NAME.goBack) {
                 if (target.direction === "north") {
@@ -1882,6 +1938,14 @@ phina.define('Block', {
             // 障害物確認
             if (self.name === BLOCK_NAME.stop) {
                 return !target.bumpWall(target.direction);
+            }
+            // 障害物確認（右斜め前）
+            if (self.name === BLOCK_NAME.stopRight) {
+                return !target.bumpWall(target.direction, "right");
+            }
+            // 障害物確認（左斜め前）
+            if (self.name === BLOCK_NAME.stopLeft) {
+                return !target.bumpWall(target.direction, "left");
             }
             // 50%の確率
             if (self.name === BLOCK_NAME.random1) {
@@ -2089,6 +2153,26 @@ phina.define('Block', {
                 self.setImage("turnToEnemy");
                 self.description = "相手がいる方向を向く。";
                 self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.goRight) {
+                self.setImage("goRight");
+                self.description = "右斜め前に１マス前進する。";
+                self.doubleArrow = false;
+                self.turn = 1;
+            } else if (name === BLOCK_NAME.goLeft) {
+                self.setImage("goLeft");
+                self.description = "左斜め前に１マス前進する。";
+                self.doubleArrow = false;
+                self.turn = 1;
+            } else if (name === BLOCK_NAME.stopRight) {
+                self.setImage("stopRight");
+                self.description = "右斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。障害物があり前進できない場合、赤矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.stopLeft) {
+                self.setImage("stopLeft");
+                self.description = "左斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。障害物があり前進できない場合、赤矢印へ。";
+                self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
                 self.setImage("empty");
