@@ -457,17 +457,28 @@ phina.define('BlockSelectScene', {
         moveSelectMark();
 
         const submitButton = BasicButton({
-            text: "閉じる",
-            width: 150,
+            text: "決定",
+            width: 160,
             height: 50,
+            primary: true,
         })
-        .addChildTo(self).setPosition(self.gridX.center(), self.gridY.span(14.5))
+        .addChildTo(self).setPosition(self.gridX.center(-2.5), self.gridY.span(14.5))
         .on("pointstart", function() {
             params.block.changeBlock(selectedBlock.name, false, selectedBlock.arrowOK, selectedBlock.arrowNG);
             self.exit();
         });
         submitButton.setInteractive(true);
 
+        const cancelButton = BasicButton({
+            text: "キャンセル",
+            width: 160,
+            height: 50,
+        })
+        .addChildTo(self).setPosition(self.gridX.center(2.5), self.gridY.span(14.5))
+        .on("pointstart", function() {
+            self.exit();
+        });
+        cancelButton.setInteractive(true);
     },
 });
 
