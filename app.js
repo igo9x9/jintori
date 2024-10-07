@@ -305,7 +305,7 @@ phina.define('EnemySelectScene', {
             enemy2_2Button.setInteractive(true);
             enemy2_2Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("");
+                enemyProgram.import("0yvK5hN4cDYYd4o2KcFmnUeBDP41zIOORtqEri2nzGlg5YOmSbgJbipLZnCmf5MEV8on6AwHzAWJCEwE");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 5});
             });
         }
@@ -1612,8 +1612,8 @@ phina.define('ProgramingScene', {
                 const data = enemyProgram.export();
                 window.localStorage.setItem("workEnemy", data);
             }
-            if (playerProgram.export() !== self.oldProgram) {
-                App.pushScene(MessageDialogScene({message: "プログラムが変わったので\n最初からやり直しになります。", callback: function() {
+            if (!param.trainingMode && playerProgram.export() !== self.oldProgram) {
+                App.pushScene(MessageDialogScene({message: "プログラムを変更したので\n最初からやり直します。", callback: function() {
                     param.battleScene.restartFlg = true;
                     self.exit("BattleScene", {trainingMode: param.trainingMode, enemyLevel: param.enemyLevel});
                 }}));
@@ -1622,6 +1622,7 @@ phina.define('ProgramingScene', {
             }
         });
 
+        // ブロックを並べる
         for (let x = 0; x < blocksPanel.gridX.columns; x++) {
             for (let y = 0; y < blocksPanel.gridY.columns; y++) {
                 param.targetProgram.blocks[y][x]
@@ -1629,7 +1630,18 @@ phina.define('ProgramingScene', {
                     .setPosition(blocksPanel.gridX.span(x), blocksPanel.gridY.span(y));
             }
         }
-        
+
+        // 実行中のブロックに印をつける
+        const activeBlock = param.targetProgram.getLastActiveBlock();
+        const mark = RectangleShape({
+            width: activeBlock.width,
+            heigth: activeBlock.height,
+            fill: "red",
+            stroke: "red",
+            strokeWidth: 1,
+        }).addChildTo(blocksPanel).setPosition(activeBlock.x, activeBlock.y);
+        mark.alpha = 0.3;
+        mark.tweener.to({alpha:0}, 300).to({alpha:0.5}, 300).setLoop(true).play();
 
     },
 });
@@ -1854,7 +1866,7 @@ phina.define('HowToScene', {
             height: this.height - 600,
         }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
 
-        label.text = "画面下の白にゃんこをプログラムで動かして、どんどん陣地を広げてください。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
+        label.text = "画面下の白にゃんこをプログラムで動かして、どんどん陣地を広げてください。歩いた場所が陣地になります。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
 
         Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(400, 720);
         const s1 = Sprite("howToArrow").addChildTo(this).setPosition(540, 775);
@@ -2023,6 +2035,9 @@ function Program(playerOrEnemy, trainingMode) {
     self.x = 4;
     self.y = 1;
 
+    self.lastX = self.x;
+    self.lastY = self.y;
+
     self.clear = function () {
         self.blocks.forEach((row, y) => {
             row.forEach((block, x) => {
@@ -2156,6 +2171,10 @@ function Program(playerOrEnemy, trainingMode) {
         return self.blocks[self.y][self.x];
     };
 
+    self.getLastActiveBlock = function () {
+        return self.blocks[self.lastY][self.lastX];
+    }
+
     self.stepOK = function() {
         const active = self.getActiveBlock();
         let x = self.x, y = self.y;
@@ -2184,6 +2203,9 @@ function Program(playerOrEnemy, trainingMode) {
         if (x < 0 || y > 13) {
             return null;
         }
+
+        self.lastX = self.x;
+        self.lastY = self.y;
 
         self.x = x;
         self.y = y;
@@ -2219,6 +2241,9 @@ function Program(playerOrEnemy, trainingMode) {
         if (x < 0 || y > 13) {
             return null;
         }
+
+        self.lastX = self.x;
+        self.lastY = self.y;
 
         self.x = x;
         self.y = y;
