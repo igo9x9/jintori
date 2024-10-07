@@ -124,14 +124,15 @@ phina.define('TitleScene', {
             self.exit("EnemySelectScene");
         });
 
-        // BasicButton({
-        //     width: 300,
-        //     height: 60,
-        //     text: "トレーニング",
-        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6))
-        // .on("pointstart", function() {
-        //     self.exit("BattleScene", {trainingMode: true, enemyLevel: 1});
-        // });
+        BasicButton({
+            width: 300,
+            height: 60,
+            text: "初期化（開発用）",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
+        .on("pointstart", function() {
+            localStorage.setItem("level", "1");
+            alert("levelを1に戻しました。")
+        });
 
         const query = new URLSearchParams(window.location.search);
 
@@ -1226,12 +1227,19 @@ phina.define('BattleScene', {
         };
 
         self.updateCountdown();
-        if (!param.skipHowToShow && myLevel === 1) {
+
+        if (!param.skipHowToShow && !param.trainingMode && myLevel === 1) {
             setTimeout(function() {
                 self.player.setDirection("south");
                 App.pushScene(HowToScene({callback: function () {
                     self.gameStart();
                     self.player.setDirection("north");
+                }}));
+            }, 10)
+        } else if (!param.skipHowToShow && param.trainingMode && myLevel < 4) {
+            setTimeout(function() {
+                App.pushScene(WhatIsFreeScene({callback: function () {
+                    self.gameStart();
                 }}));
             }, 10)
         } else {
@@ -1381,7 +1389,7 @@ phina.define('BattleMenuScene', {
         const base = RectangleShape({
             x: this.gridX.center(),
             y: this.gridY.center(),
-            width: this.width - 300,
+            width: this.width - 250,
             height: this.height - 400,
             fill: "white",
             stroke: "black",
@@ -1389,38 +1397,35 @@ phina.define('BattleMenuScene', {
             cornerRadius: 10,
         }).addChildTo(this);
 
-        // 最初からやり直すボタン
-        const clearButton = BasicButton({
-            text: "最初からやり直す",
-            width: 300,
+        // 敵のプログラムを表示
+        const saveButton = BasicButton({
+            text: "敵のプログラムを見る",
+            width: 350,
             height: 50,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(5))
-        .on("pointstart", function() {
-            param.battleScene.restartFlg = true;
-            self.exit();
-        });
-
-        // 敵のプログラムを表示
-        const saveButton = BasicButton({
-            text: "相手のプログラム",
-            width: 300,
-            height: 50,
-        }).addChildTo(self)
-        .setPosition(self.gridX.center(), self.gridY.span(7))
         .on("pointstart", function() {
             // if (param.battleScene.trainingMode) {
                 // return;
             // }
             App.pushScene(ProgramingScene({targetProgram: enemyProgram, trainingMode: param.battleScene.trainingMode}));
         });
-        // if (param.battleScene.trainingMode) {
-            // saveButton.disable();
-        // }
+
+        // 最初からやり直すボタン
+        const clearButton = BasicButton({
+            text: "最初からやり直す",
+            width: 350,
+            height: 50,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(), self.gridY.span(7))
+        .on("pointstart", function() {
+            param.battleScene.restartFlg = true;
+            self.exit();
+        });
 
         const gotoTitleButton = BasicButton({
-            text: "対戦相手を選ぶ",
-            width: 300,
+            text: "対戦相手を選びなおす",
+            width: 350,
             height: 50,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(9))
@@ -1521,7 +1526,7 @@ phina.define('ProgramingMenuScene', {
             const data = playerProgram.export();
             const url = location.protocol + "//" + location.host + location.pathname + "?data=" + data;
             navigator.clipboard.writeText(url);
-            App.pushScene(MessageDialogScene({message: "このプログラムを誰でも使えるURLを\nクリップボードにコピーしました。"}));
+            App.pushScene(MessageDialogScene({message: "このプログラムを公開するURLを\nクリップボードにコピーしました。"}));
         });
         if (param.playerOrEnemy === "enemy") {
             shareButton.disable();
@@ -1851,12 +1856,44 @@ phina.define('HowToScene', {
 
         label.text = "画面下の白にゃんこをプログラムで動かして、どんどん陣地を広げてください。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
 
-        Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(380, 720);
-        const s1 = Sprite("howToArrow").addChildTo(this).setPosition(520, 775);
+        Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(400, 720);
+        const s1 = Sprite("howToArrow").addChildTo(this).setPosition(540, 775);
         s1.scaleX *= -1;
 
         Label({text:"陣地", fill:"white", fontSize: 35}).addChildTo(this).setPosition(170, 785);
         Sprite("howToArrow").addChildTo(this).setPosition(80, 840);
+
+        this.on("pointstart", function() {
+            if (param && param.callback) {
+                setTimeout(function() {
+                    param.callback();
+                }, 1);
+            }
+            self.exit();
+        });
+    },
+});
+
+// フリーモードの説明シーン
+phina.define('WhatIsFreeScene', {
+    superClass: 'DisplayScene',
+    init: function(param) {
+        const self = this;
+        this.superInit();
+
+        this.backgroundColor = "rgba(0, 0, 0, 0.3)";
+
+        Label({text:"フリーモード", fill:"white", fontSize: 35, fontWeight: 800}).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center(-4));
+
+        const label = LabelArea({
+            text: "",
+            fontSize: 30,
+            fill: "white",
+            width: this.width - 150,
+            height: this.height - 600,
+        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
+
+        label.text = "ここでは、敵のプログラムを自由に変更できます。\n\nまた、誰かが公開したプログラムを敵のプログラムとして読み込んだ場合、ここで対決します。";
 
         this.on("pointstart", function() {
             if (param && param.callback) {
@@ -2554,12 +2591,12 @@ phina.define('Block', {
                 self.turn = 0;
             } else if (name === BLOCK_NAME.enemy) {
                 self.setImage("enemy");
-                self.description = "距離に関係なく、相手が自分の前方にいるかどうかを判定する。前方にいるなら青矢印へ。";
+                self.description = "距離に関係なく、敵が自分の前方にいるかどうかを判定する。前方にいるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.turnToEnemy) {
                 self.setImage("turnToEnemy");
-                self.description = "相手がいる方向を向く。";
+                self.description = "敵がいる方向を向く。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.goRight) {
