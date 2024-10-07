@@ -6,6 +6,8 @@ const BATTLE_TIME = 200;
 let countdownMax = BATTLE_TIME;
 let countdown = BATTLE_TIME;
 
+let myLevel = 1;
+
 ASSETS = {
     image: {
         "title": "img/title.png",
@@ -43,12 +45,15 @@ ASSETS = {
         "enemy1": "img/enemy1.png",
         "enemy2": "img/enemy2.png",
         "enemy3": "img/enemy3.png",
+        "enemy4": "img/enemy4.png",
         "green": "img/green.png",
         "wall": "img/wall.png",
         "white": "img/white.png",
         "black": "img/black.png",
         "whiteStone": "img/whiteStone.png",
         "blackStone": "img/blackStone.png",
+        "lock": "img/lock.png",
+        "howToArrow": "img/howToArrow.png",
     },
     spritesheet: {
         "nekoSpriteSheet": "neko.json",
@@ -114,19 +119,28 @@ phina.define('TitleScene', {
             width: 300,
             height: 60,
             text: "はじめる",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(4.5))
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(5))
         .on("pointstart", function() {
             self.exit("EnemySelectScene");
         });
 
-        BasicButton({
-            width: 300,
-            height: 60,
-            text: "トレーニング",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6))
-        .on("pointstart", function() {
-            self.exit("BattleScene", {trainingMode: true, enemyLevel: 1});
-        });
+        // BasicButton({
+        //     width: 300,
+        //     height: 60,
+        //     text: "トレーニング",
+        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6))
+        // .on("pointstart", function() {
+        //     self.exit("BattleScene", {trainingMode: true, enemyLevel: 1});
+        // });
+
+        const query = new URLSearchParams(window.location.search);
+
+        if (query.has("data")) {
+            setTimeout(function() {
+                App.pushScene(LoadURLScene({data: query.get("data")}));
+            }, 100);
+        }
+
 
     },
 
@@ -140,7 +154,13 @@ phina.define('EnemySelectScene', {
 
         const self = this;
 
-        this.backgroundColor = "white";
+        this.backgroundColor = "pink";
+
+        let level = localStorage.getItem("level");
+        if (level) {
+            myLevel = Number(level);
+        }
+
 
         Label({
             text: "対戦相手",
@@ -149,104 +169,260 @@ phina.define('EnemySelectScene', {
             fontWeight: 800,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(1));
 
-        const enemy1Button = RectangleShape({
-            width: 600,
-            height: 200,
+        const enemy1_1Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
             stroke: "black",
             strokeWidth: 10,
             cornerRadius: 10,
             fill: "white",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(3.5))
+        }).addChildTo(this).setPosition(this.gridX.center(-5), this.gridY.span(4))
         Label({
-            text: "よわい",
+            text: "Lv.1",
             fontSize: 30,
             fontWeight: 800,
-        }).addChildTo(enemy1Button).addChildTo(enemy1Button).setPosition(-170, -50);
-        const enemy1Sprite = Sprite("enemy1").addChildTo(enemy1Button).setPosition(-170, 10);
-        const enemy1SS = FrameAnimation('nekoSpriteSheet')
-        enemy1SS.attachTo(enemy1Sprite);
-        enemy1SS.gotoAndPlay("south");
-        LabelArea({
-            text: "ランダムに動きまわる。障害物に当たって進めなくなることが多いのが弱点。",
-            width: 280,
-            height: 300,
-            fontSize: 25,
-            // fontWeight: 800,
-        }).addChildTo(enemy1Button).addChildTo(enemy1Button).setPosition(100, 100);
-        enemy1Button.setInteractive(true);
-        enemy1Button.on("pointstart", function() {
+        }).addChildTo(enemy1_1Button).addChildTo(enemy1_1Button).setPosition(0, -30);
+        const enemy1_1Sprite = Sprite("enemy1").addChildTo(enemy1_1Button).setPosition(0, 20);
+        const enemy1_1SS = FrameAnimation('nekoSpriteSheet')
+        enemy1_1SS.attachTo(enemy1_1Sprite);
+        enemy1_1SS.gotoAndPlay("south");
+        enemy1_1Button.setInteractive(true);
+        enemy1_1Button.on("pointstart", function() {
             enemyProgram = new Program("enemy", false);
             enemyProgram.import("0yvK5hN4cCmGJehhjU6_tigYNoVo66gksYO9QiYG");
             self.exit("BattleScene", {trainingMode: false, enemyLevel: 1});
         });
 
-        const enemy2Button = RectangleShape({
-            width: 600,
-            height: 200,
+        const enemy1_2Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
             stroke: "black",
             strokeWidth: 10,
             cornerRadius: 10,
             fill: "white",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(7.5))
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(4))
         Label({
-            text: "ふつう",
+            text: "Lv.2",
             fontSize: 30,
             fontWeight: 800,
-        }).addChildTo(enemy2Button).addChildTo(enemy2Button).setPosition(-170, -50);
-        const enemy2Sprite = Sprite("enemy2").addChildTo(enemy2Button).setPosition(-170, 10);
-        const enemy2SS = FrameAnimation('nekoSpriteSheet')
-        enemy2SS.attachTo(enemy2Sprite);
-        enemy2SS.gotoAndPlay("south");
-        LabelArea({
-            text: "おじゃま石でじわじわ囲ってくる、やっかいな相手。",
-            width: 280,
-            height: 300,
-            fontSize: 25,
-            // fontWeight: 800,
-        }).addChildTo(enemy2Button).addChildTo(enemy2Button).setPosition(100, 100);
-        enemy2Button.setInteractive(true);
-        enemy2Button.on("pointstart", function() {
-            enemyProgram = new Program("enemy", false);
-            enemyProgram.import("0yvK5hN4cCmGOSAXCZOpzsj9M4We0JptdGQwzeBlKNPyA51U4F");
-            self.exit("BattleScene", {trainingMode: false, enemyLevel: 2});
-        });
+        }).addChildTo(enemy1_2Button).addChildTo(enemy1_2Button).setPosition(0, -30);
+        const enemy1_2Sprite = Sprite("enemy1").addChildTo(enemy1_2Button).setPosition(0, 20);
+        const enemy1_2SS = FrameAnimation('nekoSpriteSheet')
+        enemy1_2SS.attachTo(enemy1_2Sprite);
+        enemy1_2SS.gotoAndPlay("south");
+        if (myLevel < 2) {
+            enemy1_2Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy1_2Button.x, enemy1_2Button.y);
+        } else {
+            enemy1_2Button.setInteractive(true);
+            enemy1_2Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("0yvK5hN4cDYYFouXVjbgg57QwYA9XGeTTVW75iCqWonyNr5ZGMmiFwQCOB");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 2});
+            });
+        }
 
-        const enemy3Button = RectangleShape({
-            width: 600,
-            height: 200,
+        const enemy1_3Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
             stroke: "black",
             strokeWidth: 10,
             cornerRadius: 10,
             fill: "white",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(11.5))
+        }).addChildTo(this).setPosition(this.gridX.center(5), this.gridY.span(4))
         Label({
-            text: "つよい",
+            text: "Lv.3",
             fontSize: 30,
             fontWeight: 800,
-        }).addChildTo(enemy3Button).addChildTo(enemy3Button).setPosition(-170, -50);
-        const enemy3Sprite = Sprite("enemy3").addChildTo(enemy3Button).setPosition(-170, 10);
-        const enemy3SS = FrameAnimation('nekoSpriteSheet')
-        enemy3SS.attachTo(enemy3Sprite);
-        enemy3SS.gotoAndPlay("south");
-        LabelArea({
-            text: "ランダムに動くだけなので、障害物に当たってタイムロスするのが弱点。",
-            width: 280,
-            height: 300,
-            fontSize: 25,
-            // fontWeight: 800,
-        }).addChildTo(enemy3Button).addChildTo(enemy3Button).setPosition(100, 100);
-        enemy3Button.setInteractive(true);
-        enemy3Button.on("pointstart", function() {
-            enemyProgram = new Program("enemy", false);
-            enemyProgram.import("0yvK5hN4cCmGOSAXCZOpzsj9M4We0JptdGQwzeBlKNPyA51U4F");
-            self.exit("BattleScene", {trainingMode: false, enemyLevel: 3});
+        }).addChildTo(enemy1_3Button).addChildTo(enemy1_3Button).setPosition(0, -30);
+        const enemy1_3Sprite = Sprite("enemy1").addChildTo(enemy1_3Button).setPosition(0, 20);
+        const enemy1_3SS = FrameAnimation('nekoSpriteSheet')
+        enemy1_3SS.attachTo(enemy1_3Sprite);
+        enemy1_3SS.gotoAndPlay("south");
+        if (myLevel < 3) {
+            enemy1_3Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy1_3Button.x, enemy1_3Button.y);
+        } else {
+            enemy1_3Button.setInteractive(true);
+            enemy1_3Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("0yvK5hN4cDYb16AXFgbggPJkMQ5K4y7sEwROhaCF3NCrQZvh2hbb4y-2TwaYc2Bn02BOgLmwEWB");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 3});
+            });
+        }
+
+        const enemy2_1Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(-5), this.gridY.span(8))
+        Label({
+            text: "Lv.4",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy2_1Button).addChildTo(enemy2_1Button).setPosition(0, -30);
+        const enemy2_1Sprite = Sprite("enemy2").addChildTo(enemy2_1Button).setPosition(0, 20);
+        const enemy2_1SS = FrameAnimation('nekoSpriteSheet')
+        enemy2_1SS.attachTo(enemy2_1Sprite);
+        enemy2_1SS.gotoAndPlay("south");
+        if (myLevel < 4) {
+            enemy2_1Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy2_1Button.x, enemy2_1Button.y);
+        } else {
+            enemy2_1Button.setInteractive(true);
+            enemy2_1Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("0yvK5hN4cCmG5wuWVBaRGTA1");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 4});
+            });
+        }
+
+        const enemy2_2Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(8))
+        Label({
+            text: "Lv.5",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy2_2Button).addChildTo(enemy2_2Button).setPosition(0, -30);
+        const enemy2_2Sprite = Sprite("enemy2").addChildTo(enemy2_2Button).setPosition(0, 20);
+        const enemy2_2SS = FrameAnimation('nekoSpriteSheet')
+        enemy2_2SS.attachTo(enemy2_2Sprite);
+        enemy2_2SS.gotoAndPlay("south");
+        if (myLevel < 5) {
+            enemy2_2Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy2_2Button.x, enemy2_2Button.y);
+        } else {
+            enemy2_2Button.setInteractive(true);
+            enemy2_2Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 5});
+            });
+        }
+
+        const enemy2_3Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(5), this.gridY.span(8))
+        Label({
+            text: "Lv.6",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy2_3Button).addChildTo(enemy2_3Button).setPosition(0, -30);
+        const enemy2_3Sprite = Sprite("enemy2").addChildTo(enemy2_3Button).setPosition(0, 20);
+        const enemy2_3SS = FrameAnimation('nekoSpriteSheet')
+        enemy2_3SS.attachTo(enemy2_3Sprite);
+        enemy2_3SS.gotoAndPlay("south");
+        if (myLevel < 6) {
+            enemy2_3Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy2_3Button.x, enemy2_3Button.y);
+        } else {
+            enemy2_3Button.setInteractive(true);
+            enemy2_3Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 6});
+            });
+        }
+
+        const enemy3_1Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(-5), this.gridY.span(12))
+        Label({
+            text: "Lv.7",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy3_1Button).addChildTo(enemy3_1Button).setPosition(0, -30);
+        const enemy3_1Sprite = Sprite("enemy3").addChildTo(enemy3_1Button).setPosition(0, 20);
+        const enemy3_1SS = FrameAnimation('nekoSpriteSheet')
+        enemy3_1SS.attachTo(enemy3_1Sprite);
+        enemy3_1SS.gotoAndPlay("south");
+        if (myLevel < 7) {
+            enemy3_1Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy3_1Button.x, enemy3_1Button.y);
+        } else {
+            enemy3_1Button.setInteractive(true);
+            enemy3_1Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("0yvK5hN4cCmGJehhjU6_tigYNoVo66gksYO9QiYG");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 7});
+            });
+        }
+
+        const enemy3_2Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(12))
+        Label({
+            text: "Lv.8",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy3_2Button).addChildTo(enemy3_2Button).setPosition(0, -30);
+        const enemy3_2Sprite = Sprite("enemy3").addChildTo(enemy3_2Button).setPosition(0, 20);
+        const enemy3_2SS = FrameAnimation('nekoSpriteSheet')
+        enemy3_2SS.attachTo(enemy3_2Sprite);
+        enemy3_2SS.gotoAndPlay("south");
+        if (myLevel < 8) {
+            enemy3_2Button.alpha = 0.5;
+            Sprite("lock").addChildTo(this).setPosition(enemy3_2Button.x, enemy3_2Button.y);
+        } else {
+            enemy3_2Button.setInteractive(true);
+            enemy3_2Button.on("pointstart", function() {
+                enemyProgram = new Program("enemy", false);
+                enemyProgram.import("");
+                self.exit("BattleScene", {trainingMode: false, enemyLevel: 8});
+            });
+        }
+
+        const enemy3_3Button = RectangleShape({
+            width: this.gridX.unitWidth * 4,
+            height: this.gridY.unitWidth * 3,
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+            fill: "white",
+        }).addChildTo(this).setPosition(this.gridX.center(5), this.gridY.span(12))
+        Label({
+            text: "フリー",
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(enemy3_3Button).addChildTo(enemy3_3Button).setPosition(0, -30);
+        const enemy3_3Sprite = Sprite("enemy4").addChildTo(enemy3_3Button).setPosition(0, 20);
+        const enemy3_3SS = FrameAnimation('nekoSpriteSheet')
+        enemy3_3SS.attachTo(enemy3_3Sprite);
+        enemy3_3SS.gotoAndPlay("south");
+        enemy3_3Button.setInteractive(true);
+        enemy3_3Button.on("pointstart", function() {
+            self.exit("BattleScene", {trainingMode: true, enemyLevel: 10});
         });
 
         BasicButton({
-            width: 120,
+            width: 200,
             height: 60,
-            text: "もどる",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
+            text: "タイトルへ",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(7))
         .on("pointstart", function() {
             self.exit("TitleScene");
         });
@@ -501,18 +677,12 @@ phina.define("Cat", {
             img = "player";
         } else if (param.playerOrEnemy === "enemy") {
             self.playerOrEnemy = "player";
-            if (param.enemyLevel === 1) {
-                img = "enemy1";
-            } else if (param.enemyLevel === 2) {
-                img = "enemy2";
-            } else {
-                img = "enemy3";
-            }
+            img = "enemy" + Math.ceil(param.enemyLevel / 3);
         }
         
         this.superInit(img);
 
-        const moveSpeed = 100;
+        const moveSpeed = 450;
 
         self.nx = param.x;
         self.ny = param.y;
@@ -671,14 +841,14 @@ phina.define("Cat", {
                 .play();
                 return;
             }
+            self.nx += xx;
+            self.ny += yy;
             self.tweener
                 .to({
-                    x: param.field.gridX.span(self.nx + xx),
-                    y: param.field.gridY.span(self.ny + yy)
+                    x: param.field.gridX.span(self.nx),
+                    y: param.field.gridY.span(self.ny)
                 }, moveSpeed)
                 .call(function() {
-                    self.nx += xx;
-                    self.ny += yy;
                     ss.gotoAndPlay(direction);
                     addArea();
                 })
@@ -831,12 +1001,10 @@ phina.define('BattleScene', {
         this.uiLayer = DisplayElement().addChildTo(self);
 
         this.trainingMode = param.trainingMode;
+        this.enemyLevel = param.enemyLevel;
 
-        if (param.trainingMode) {
-            countdown = BATTLE_TIME / 2;
-        } else {
-            countdown = BATTLE_TIME;
-        }
+        countdown = BATTLE_TIME;
+
         countdownMax = countdown;
 
         const fieldPanel = RectangleShape({
@@ -888,7 +1056,7 @@ phina.define('BattleScene', {
         playerEditButton.setInteractive(true);
         playerEditButton.on("pointstart", function() {
             // self.exit("ProgramingScene", {targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel});
-            App.pushScene(ProgramingScene({targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel}));
+            App.pushScene(ProgramingScene({targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel, battleScene: self}));
         });
 
         // その他ボタン
@@ -1058,7 +1226,17 @@ phina.define('BattleScene', {
         };
 
         self.updateCountdown();
-        self.gameStart();
+        if (!param.skipHowToShow && myLevel === 1) {
+            setTimeout(function() {
+                self.player.setDirection("south");
+                App.pushScene(HowToScene({callback: function () {
+                    self.gameStart();
+                    self.player.setDirection("north");
+                }}));
+            }, 10)
+        } else {
+            self.gameStart();
+        }
 
     },
     step: 0,
@@ -1067,7 +1245,7 @@ phina.define('BattleScene', {
     gameEnd: function () {
         const self = this;
         Label({
-            text: "タイムアップ！",
+            text: "TIME UP",
             fontSize: 60,
             fill: "white",
             fontWeight: 800,
@@ -1076,9 +1254,9 @@ phina.define('BattleScene', {
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-4))
         .tweener.wait(500)
         .call(function () {
-            if (self.trainingMode) {
-                return;
-            }
+            // if (self.trainingMode) {
+            //     return;
+            // }
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
                 Label({
                     text: "勝 利",
@@ -1087,6 +1265,11 @@ phina.define('BattleScene', {
                     stroke: "red",
                     strokeWidth: 20,
                 }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+            // レベルアップ？
+            if (self.enemyLevel !== 9 && self.enemyLevel >= myLevel) {
+                myLevel += 1;
+                localStorage.setItem("level", myLevel);
+            }
             } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
                 Label({
                     text: "敗 北",
@@ -1113,7 +1296,7 @@ phina.define('BattleScene', {
     gameStart: function () {
         const self = this;
         const readyLabel = Label({
-            text: "よ～い",
+            text: "READY",
             fontSize: 60,
             fill: "white",
             fontWeight: 800,
@@ -1121,7 +1304,7 @@ phina.define('BattleScene', {
             strokeWidth: 10,
         }).addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
         const goLabel = Label({
-            text: "開始",
+            text: "GO!",
             fontSize: 110,
             fill: "white",
             fontWeight: 800,
@@ -1236,14 +1419,14 @@ phina.define('BattleMenuScene', {
         // }
 
         const gotoTitleButton = BasicButton({
-            text: "タイトルにもどる",
+            text: "対戦相手を選ぶ",
             width: 300,
             height: 50,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(9))
         .on("pointstart", function() {
             self.exit();
-            param.battleScene.exit("TitleScene");
+            param.battleScene.exit("EnemySelectScene");
         });
 
         // 閉じるボタン
@@ -1326,11 +1509,23 @@ phina.define('ProgramingMenuScene', {
 
         // シェアボタン
         const shareButton = BasicButton({
-            text: "シェア用のURL作成",
+            text: "プログラムをシェア",
             width: 300,
             height: 50,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(10))
+        .on("pointstart", function() {
+            if (param.playerOrEnemy === "enemy") {
+                return;
+            }
+            const data = playerProgram.export();
+            const url = location.protocol + "//" + location.host + location.pathname + "?data=" + data;
+            navigator.clipboard.writeText(url);
+            App.pushScene(MessageDialogScene({message: "このプログラムを誰でも使えるURLを\nクリップボードにコピーしました。"}));
+        });
+        if (param.playerOrEnemy === "enemy") {
+            shareButton.disable();
+        }
 
         // 閉じるボタン
         const closeButton = BasicButton({
@@ -1356,6 +1551,8 @@ phina.define('ProgramingScene', {
         this.superInit();
 
         this.backgroundColor = "gray";
+
+        this.oldProgram = playerProgram.export();
 
         // レイヤー
         this.uiLayer = DisplayElement().addChildTo(self);
@@ -1404,12 +1601,20 @@ phina.define('ProgramingScene', {
                 // ワーク領域にプログラムを保存
                 const data = playerProgram.export();
                 window.localStorage.setItem("work", data);
-            } else {
+            } else if (param.trainingMode) {
+                // 敵のプログラムを保存するのはトレーニングの場合だけ
                 // ワーク領域にプログラムを保存
                 const data = enemyProgram.export();
                 window.localStorage.setItem("workEnemy", data);
             }
-            self.exit("BattleScene", {trainingMode: param.trainingMode, enemyLevel: param.enemyLevel});
+            if (playerProgram.export() !== self.oldProgram) {
+                App.pushScene(MessageDialogScene({message: "プログラムが変わったので\n最初からやり直しになります。", callback: function() {
+                    param.battleScene.restartFlg = true;
+                    self.exit("BattleScene", {trainingMode: param.trainingMode, enemyLevel: param.enemyLevel});
+                }}));
+            } else {
+                self.exit("BattleScene", {trainingMode: param.trainingMode, enemyLevel: param.enemyLevel});
+            }
         });
 
         for (let x = 0; x < blocksPanel.gridX.columns; x++) {
@@ -1540,6 +1745,78 @@ phina.define('SaveAndLoadScene', {
     },
 });
 
+// URL読み込みシーン
+phina.define('LoadURLScene', {
+    superClass: 'DisplayScene',
+    init: function(param) {
+        const self = this;
+        this.superInit();
+
+        this.backgroundColor = "rgba(0, 0, 0, 0.5)";
+
+        // ウインドウ
+        const base = RectangleShape({
+            x: this.gridX.center(),
+            y: this.gridY.center(),
+            width: this.width - 100,
+            height: this.height - 550,
+            fill: "white",
+            stroke: "black",
+            strokeWidth: 10,
+            cornerRadius: 10,
+        }).addChildTo(this);
+
+        const label = Label({
+            fontSize: 25,
+            fill: "black",
+            fontWeight: 800,
+        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(6));
+        label.text = "URLにプログラムが含まれています。";
+
+        const okButton = BasicButton({
+            text: "自分のプログラムとして読み込む",
+            width: 450,
+            height: 100,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(), self.gridY.span(8))
+        .on("pointstart", function() {
+            if (!playerProgram) {
+                playerProgram = new Program("player");
+            }
+            playerProgram.import(param.data);
+            App.pushScene(MessageDialogScene({message: "読み込みました。", callback: () => self.exit()}));
+        });
+
+        const ok2Button = BasicButton({
+            text: "敵のプログラムとして読み込む",
+            width: 450,
+            height: 100,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(), self.gridY.span(10))
+        .on("pointstart", function() {
+            window.localStorage.setItem("workEnemy", param.data);
+            App.pushScene(MessageDialogScene({message: "読み込みました。\n対戦相手「フリー」を選択してください。", callback: () => self.exit()}));
+        });
+
+        // // いいえボタン
+        // const closeButton = BasicButton({
+        //     text: "いいえ",
+        //     width: 170,
+        //     height: 50,
+        // }).addChildTo(self)
+        // .setPosition(self.gridX.center(3), self.gridY.span(9))
+        // .on("pointstart", function() {
+        //     self.exit();
+        // });
+
+        // クエリパラメータはもう不要
+        const url = new URL(window.location.href);
+        history.replaceState(null, '', url.pathname);
+
+
+    },
+});
+
 // 空っぽのシーン
 phina.define('BlankScene', {
     superClass: 'DisplayScene',
@@ -1547,9 +1824,49 @@ phina.define('BlankScene', {
         const self = this;
         this.superInit();
         setTimeout(function() {
+            param.skipHowToShow = true;
             self.exit(param.callbackScene, param);
         }, 1);
     }
+});
+
+// 簡単な説明シーン
+phina.define('HowToScene', {
+    superClass: 'DisplayScene',
+    init: function(param) {
+        const self = this;
+        this.superInit();
+
+        this.backgroundColor = "rgba(0, 0, 0, 0.3)";
+
+        Label({text:"あそびかた", fill:"white", fontSize: 35, fontWeight: 800}).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center(-4));
+
+        const label = LabelArea({
+            text: "",
+            fontSize: 30,
+            fill: "white",
+            width: this.width - 150,
+            height: this.height - 600,
+        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
+
+        label.text = "画面下の白にゃんこをプログラムで動かして、どんどん陣地を広げてください。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
+
+        Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(380, 720);
+        const s1 = Sprite("howToArrow").addChildTo(this).setPosition(520, 775);
+        s1.scaleX *= -1;
+
+        Label({text:"陣地", fill:"white", fontSize: 35}).addChildTo(this).setPosition(170, 785);
+        Sprite("howToArrow").addChildTo(this).setPosition(80, 840);
+
+        this.on("pointstart", function() {
+            if (param && param.callback) {
+                setTimeout(function() {
+                    param.callback();
+                }, 1);
+            }
+            self.exit();
+        });
+    },
 });
 
 // シンプルなメッセージダイアログ
@@ -1565,8 +1882,8 @@ phina.define('MessageDialogScene', {
         const base = RectangleShape({
             x: this.gridX.center(),
             y: this.gridY.center(),
-            width: this.width,
-            height: 180,
+            width: this.width - 50,
+            height: 200,
             fill: "white",
             stroke: "black",
             strokeWidth: 10,
@@ -1579,7 +1896,7 @@ phina.define('MessageDialogScene', {
             fontSize: 25,
             fontWeight: 800,
             fill: "black",
-        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(7.3));
+        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(7.2));
 
         // 閉じるボタン
         const closeButton = BasicButton({
@@ -1587,8 +1904,13 @@ phina.define('MessageDialogScene', {
             width: 170,
             height: 50,
         }).addChildTo(self)
-        .setPosition(self.gridX.center(), self.gridY.span(8.5))
+        .setPosition(self.gridX.center(), self.gridY.span(8.7))
         .on("pointstart", function() {
+            if (param && param.callback) {
+                setTimeout(function() {
+                    param.callback();
+                }, 1);
+            }
             self.exit();
         });
     }
