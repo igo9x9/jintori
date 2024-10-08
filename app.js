@@ -659,7 +659,7 @@ phina.define('BlockSelectScene', {
             height: 50,
             primary: true,
         })
-        .addChildTo(self).setPosition(self.gridX.center(-2.5), self.gridY.span(14.5))
+        .addChildTo(self).setPosition(self.gridX.center(-3), self.gridY.span(14.5))
         .on("pointstart", function() {
             params.block.changeBlock(selectedBlock.name, false, selectedBlock.arrowOK, selectedBlock.arrowNG);
             self.exit();
@@ -671,7 +671,7 @@ phina.define('BlockSelectScene', {
             width: 160,
             height: 50,
         })
-        .addChildTo(self).setPosition(self.gridX.center(2.5), self.gridY.span(14.5))
+        .addChildTo(self).setPosition(self.gridX.center(3), self.gridY.span(14.5))
         .on("pointstart", function() {
             self.exit();
         });
@@ -2817,49 +2817,49 @@ phina.define('Block', {
 
         this.changeArrowOKDirection = function() {
             if (self.arrowOK === "down") {
-                if (self.arrowNG === "leftDown") {
+                if (self.doubleArrow && self.arrowNG === "leftDown") {
                     self.arrowOK = "left";
                 } else {
                     self.arrowOK = "leftDown";
                 }
             } else if (self.arrowOK === "leftDown") {
-                if (self.arrowNG === "left") {
+                if (self.doubleArrow && self.arrowNG === "left") {
                     self.arrowOK = "leftUp";
                 } else {
                     self.arrowOK = "left";
                 }
             } else if (self.arrowOK === "left") {
-                if (self.arrowNG === "leftUp") {
+                if (self.doubleArrow && self.arrowNG === "leftUp") {
                     self.arrowOK = "up";
                 } else {
                     self.arrowOK = "leftUp";
                 }
             } else if (self.arrowOK === "leftUp") {
-                if (self.arrowNG === "up") {
+                if (self.doubleArrow && self.arrowNG === "up") {
                     self.arrowOK = "rightUp";
                 } else {
                     self.arrowOK = "up";
                 }
             } else if (self.arrowOK === "up") {
-                if (self.arrowNG === "rightUp") {
+                if (self.doubleArrow && self.arrowNG === "rightUp") {
                     self.arrowOK = "right";
                 } else {
                     self.arrowOK = "rightUp";
                 }
             } else if (self.arrowOK === "rightUp") {
-                if (self.arrowNG === "right") {
+                if (self.doubleArrow && self.arrowNG === "right") {
                     self.arrowOK = "rightDown";
                 } else {
                     self.arrowOK = "right";
                 }
             } else if (self.arrowOK === "right") {
-                if (self.arrowNG === "rightDown") {
+                if (self.doubleArrow && self.arrowNG === "rightDown") {
                     self.arrowOK = "down";
                 } else {
                     self.arrowOK = "rightDown";
                 }
             } else if (self.arrowOK === "rightDown") {
-                if (self.arrowNG === "down") {
+                if (self.doubleArrow && self.arrowNG === "down") {
                     self.arrowOK = "leftDown";
                 } else {
                     self.arrowOK = "down";
@@ -2870,49 +2870,49 @@ phina.define('Block', {
 
         this.changeArrowNGDirection = function() {
             if (self.arrowNG === "down") {
-                if (self.arrowOK === "leftDown") {
+                if (self.doubleArrow && self.arrowOK === "leftDown") {
                     self.arrowNG = "left";
                 } else {
                     self.arrowNG = "leftDown";
                 }
             } else if (self.arrowNG === "leftDown") {
-                if (self.arrowOK === "left") {
+                if (self.doubleArrow && self.arrowOK === "left") {
                     self.arrowNG = "leftUp";
                 } else {
                     self.arrowNG = "left";
                 }
             } else if (self.arrowNG === "left") {
-                if (self.arrowOK === "leftUp") {
+                if (self.doubleArrow && self.arrowOK === "leftUp") {
                     self.arrowNG = "up";
                 } else {
                     self.arrowNG = "leftUp";
                 }
             } else if (self.arrowNG === "leftUp") {
-                if (self.arrowOK === "up") {
+                if (self.doubleArrow && self.arrowOK === "up") {
                     self.arrowNG = "rightUp";
                 } else {
                     self.arrowNG = "up";
                 }
             } else if (self.arrowNG === "up") {
-                if (self.arrowOK === "rightUp") {
+                if (self.doubleArrow && self.arrowOK === "rightUp") {
                     self.arrowNG = "right";
                 } else {
                     self.arrowNG = "rightUp";
                 }
             } else if (self.arrowNG === "rightUp") {
-                if (self.arrowOK === "right") {
+                if (self.doubleArrow && self.arrowOK === "right") {
                     self.arrowNG = "rightDown";
                 } else {
                     self.arrowNG = "right";
                 }
             } else if (self.arrowNG === "right") {
-                if (self.arrowOK === "rightDown") {
+                if (self.doubleArrow && self.arrowOK === "rightDown") {
                     self.arrowNG = "down";
                 } else {
                     self.arrowNG = "rightDown";
                 }
             } else if (self.arrowNG === "rightDown") {
-                if (self.arrowOK === "down") {
+                if (self.doubleArrow && self.arrowOK === "down") {
                     self.arrowNG = "leftDown";
                 } else {
                     self.arrowNG = "down";
