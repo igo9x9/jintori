@@ -134,8 +134,10 @@ phina.define('TitleScene', {
             text: "初期化（開発用）",
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
         .on("pointstart", function() {
-            localStorage.setItem("level", "1");
-            alert("levelを1に戻しました。")
+            localStorage.removeItem("level");
+            localStorage.removeItem("work");
+            localStorage.removeItem("workEnemy");
+            alert("倉庫以外を初期状態に戻しました。")
         });
 
         const query = new URLSearchParams(window.location.search);
@@ -848,9 +850,9 @@ phina.define("Cat", {
             if (self.bumpWall(direction, rightOrLeft)) {
                 self.tweener
                 .to({
-                    x: param.field.gridX.span(self.nx + xx/2),
-                    y: param.field.gridY.span(self.ny + yy/2)
-                }, moveSpeed/2)
+                    x: param.field.gridX.span(self.nx + xx/5),
+                    y: param.field.gridY.span(self.ny + yy/5)
+                }, moveSpeed/5)
                 .to({
                     x: param.field.gridX.span(self.nx),
                     y: param.field.gridY.span(self.ny)
@@ -2196,6 +2198,8 @@ function Program(playerOrEnemy, trainingMode) {
 
     self.import = function (data) {
 
+        self.clear();
+
         const program = URLCompressor.expand(data);
 
         const blocks = program.split(";");
@@ -2677,7 +2681,7 @@ phina.define('Block', {
                 self.turn = 1;
             } else if (name === BLOCK_NAME.forward) {
                 self.setImage("forward");
-                self.description = "１マス前進する。障害物に当たったら跳ね返される。";
+                self.description = "１マス前進する。障害物に当たったら前進できない。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.putStone) {
