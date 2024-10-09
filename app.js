@@ -1216,6 +1216,9 @@ phina.define('BattleScene', {
         catPanel.player = self.player;
         if (playerProgram) {
             playerProgram.restart();
+            playerProgram.blockHistory = [];
+            playerProgram.lastX = playerProgram.x;
+            playerProgram.lastY = playerProgram.y;
         } else {
             playerProgram = new Program("player", param.trainingMode);
             // ワーク領域のプログラムを読み込む
@@ -1239,6 +1242,9 @@ phina.define('BattleScene', {
             }
         } else {
             enemyProgram.restart();
+            enemyProgram.blockHistory = [];
+            enemyProgram.lastX = enemyProgram.x;
+            enemyProgram.lastY = enemyProgram.y;
         }
 
         // カウントダウン
@@ -1743,9 +1749,9 @@ phina.define('ProgramingScene', {
 
         function setFlagLabelText() {
             flagLabel.text =
-                "フラグA：" + (param.targetProgram.blockHistory[historyIndex].flagA ? "ON" : "OFF") +
+                "フラグA：" + (param.targetProgram.blockHistory[historyIndex] && param.targetProgram.blockHistory[historyIndex].flagA ? "ON" : "OFF") +
                 "\n" +
-                "フラグB：" + (param.targetProgram.blockHistory[historyIndex].flagB ? "ON" : "OFF");
+                "フラグB：" + (param.targetProgram.blockHistory[historyIndex] && param.targetProgram.blockHistory[historyIndex].flagB ? "ON" : "OFF");
         }
 
         const flagLabel = LabelArea({
