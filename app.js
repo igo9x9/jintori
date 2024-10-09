@@ -42,6 +42,8 @@ ASSETS = {
         "stopLeft": "img/blocks/stopLeft.png",
         "enemyDistance": "img/blocks/enemyDistance.png",
         "checkStone": "img/blocks/checkStone.png",
+        "startSub": "img/blocks/startSub.png",
+        "gotoSub": "img/blocks/gotoSub.png",
 
         "player": "img/player.png",
         "enemy1": "img/enemy1.png",
@@ -89,6 +91,9 @@ const BLOCK_NAME = {
     flagBoff: "W",
     enemyDistance: "X",
     checkStone: "Y",
+    start: "Z",
+    startSub: "a",
+    gotoSub: "b",
 };
 
 
@@ -634,6 +639,7 @@ phina.define('BlockSelectScene', {
         // 特殊もの
         addSampleBlock(BLOCK_NAME.empty, this.gridX.span(3), this.gridY.span(5.5));
         addSampleBlock(BLOCK_NAME.non, this.gridX.span(5), this.gridY.span(5.5));
+        addSampleBlock(BLOCK_NAME.gotoSub, this.gridX.span(7), this.gridY.span(5.5));
 
         // アクション系
         addSampleBlock(BLOCK_NAME.forward, this.gridX.span(3), this.gridY.span(7.5));
@@ -1121,11 +1127,16 @@ phina.define('BattleScene', {
                 if (block.name === BLOCK_NAME.empty) {
                     return;
                 }
+                // サブルーチン呼び出し
+                if (block.name === BLOCK_NAME.gotoSub) {
+                    program.startSubroutine(block);
+                }
                 if (block.applyProgram(target, nonTarget)) {
                     program.stepOK();
                 } else {
                     program.stepNG();
                 }
+
                 if (block.turn === 0) {
                     // 既に実行済みのブロックがdone配列に存在する場合、
                     // 無限ループに入っているということなので中止する
@@ -2160,6 +2171,10 @@ function Program(playerOrEnemy, trainingMode) {
 
     self.blocks = [];
 
+    // サブルーチンからの戻り先のブロック
+    // サブルーチンに入ったら保管し、サブルーチンを出たらnullにする
+    self.blockToReturnWhenSubroutineDone = null;
+
     function initBlocks() {
         // ブロックの初期配置
         [...Array(13)].map(() => self.blocks.push([]));
@@ -2168,10 +2183,17 @@ function Program(playerOrEnemy, trainingMode) {
                 if (x === 4 && y === 0) {
                     var start = Sprite('start');
                     Sprite("arrowOK1").addChildTo(start).setPosition(0, 20);
-                    start.name = "Z";
+                    start.name = BLOCK_NAME.start;
                     start.doubleArrow = false;
                     start.arrowOK = "down";
                     row.push(start);
+                } else if (x === 4 && y === 8) {
+                    var subroutine = Sprite('startSub');
+                    Sprite("arrowOK1").addChildTo(subroutine).setPosition(0, 20);
+                    subroutine.name = BLOCK_NAME.startSub;
+                    subroutine.doubleArrow = false;
+                    subroutine.arrowOK = "down";
+                    row.push(subroutine);
                 } else {
                     row.push(Block({name: BLOCK_NAME.empty, sampleMode: false, playerOrEnemy: playerOrEnemy, trainingMode: trainingMode}));
                 }
@@ -2189,10 +2211,27 @@ function Program(playerOrEnemy, trainingMode) {
 
     self.blockHistory = [];
 
+    self.startSubroutine = function (block) {
+
+        // すでにサブルーチンに入っていたら、抜ける
+        if (self.blockToReturnWhenSubroutineDone) {
+            self.blockToReturnWhenSubroutineDone = null;
+            return;
+        }
+
+        // サブルーチンからの戻り先のブロックを保管
+        self.blockToReturnWhenSubroutineDone = {x: self.x, y: self.y};
+        self.lastX = self.x;
+        self.lastY = self.y;
+        self.blockHistory.push({block: block, flagA: playerProgramingFlgA, flagB: playerProgramingFlgB});
+        self.x = 4;
+        self.y = 8;
+    };
+
     self.clear = function () {
         self.blocks.forEach((row, y) => {
             row.forEach((block, x) => {
-                if (x === 4 && y === 0) {
+                if (x === 4 && (y === 0 || y === 8)) {
                     // スタートブロックなのでクリア不要
                 } else {
                     block.changeBlock(BLOCK_NAME.empty, false, "down", "right");
@@ -2271,12 +2310,15 @@ function Program(playerOrEnemy, trainingMode) {
             const targetBlock = self.blocks[Math.floor(blockIndex / 9)][blockIndex % 9];
 
             // スタート地点なら何もしない
-            if (blockName === "Z") {
+            if (blockName === BLOCK_NAME.start || blockName === BLOCK_NAME.startSub) {
                 return;
             }
 
             // 空ブロックなら矢印は不要
             if (blockName === BLOCK_NAME.empty) {
+                if (!targetBlock.changeBlock) {
+                    return;
+                }
                 targetBlock.changeBlock(BLOCK_NAME.empty, false);
                 return;
             }
@@ -2319,14 +2361,24 @@ function Program(playerOrEnemy, trainingMode) {
         self.y = 1;
     };
 
+    self.returnToStart = function() {
+        if (self.blockToReturnWhenSubroutineDone) {
+            self.x = self.blockToReturnWhenSubroutineDone.x;
+            self.y = self.blockToReturnWhenSubroutineDone.y;
+        } else {
+            self.x = 4;
+            self.y = 1;
+        }
+    };
+
     self.getActiveBlock = function() {
         // ブロックそのものが無い（＝プログラムの領域外）なら、エントリポイントに戻る
         if (!self.blocks[self.y][self.x]) {
-            self.restart();
+            self.returnToStart();
         }
         // いまのブロックがなにも指定されていない場合は、エントリポイントに戻る
         if (self.blocks[self.y][self.x].name === BLOCK_NAME.empty) {
-            self.restart();
+            self.returnToStart();
         }
         return self.blocks[self.y][self.x];
     };
@@ -2725,7 +2777,18 @@ phina.define('Block', {
             }
             // 碁石を置く
             if (self.name === BLOCK_NAME.putStone) {
-                return !target.putStone();
+                target.putStone();
+                return true;
+            }
+            // サブルーチンへジャンプ
+            if (self.name === BLOCK_NAME.gotoSub) {
+                // プログラムクラス側で対応する
+                return true;
+            }
+            // サブルーチン入り口
+            if (self.name === BLOCK_NAME.startSub) {
+                // プログラムクラス側で対応する
+                return true;
             }
 
         };
@@ -2850,6 +2913,16 @@ phina.define('Block', {
                 self.setImage("checkStone");
                 self.description = "足元に自分のおじゃま石があるかどうかを判定する。あるなら青矢印へ。";
                 self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.startSub) {
+                self.setImage("startSub");
+                self.description = "サブルーチンの入り口。サブルーチンとは、別の場所から呼び出して使うプログラムのかたまり。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.gotoSub) {
+                self.setImage("gotoSub");
+                self.description = "サブルーチンを実行する。サブルーチンが終わると、ここにまた戻る。";
+                self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
                 self.setImage("empty");
