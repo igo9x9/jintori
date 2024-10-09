@@ -56,6 +56,7 @@ ASSETS = {
         "blackStone": "img/blackStone.png",
         "lock": "img/lock.png",
         "howToArrow": "img/howToArrow.png",
+        "question": "img/question.png",
     },
     spritesheet: {
         "nekoSpriteSheet": "neko.json",
@@ -101,23 +102,38 @@ phina.define('TitleScene', {
 
         this.backgroundColor = "pink";
 
-        Label({
-            text: "にゃんこの",
-            fontSize: 33,
-            fontWeight: 800,
-            fill: "brown",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-6.2))
+        const blocks = [];
+        for (key in BLOCK_NAME) {
+            blocks.push(key);
+        }
+
+        const gridX = Grid({
+            columns: this.width / 64,
+            width: this.width
+        });
+        const gridY = Grid({
+            columns: this.height / 64,
+            width: this.height
+        });
+
+        for (let x = 0; x < gridX.columns; x = x + 1) {
+            for (let y = 0; y < gridY.columns; y = y + 1) {
+                const i = Math.floor(Math.random() * blocks.length);
+                const b = Sprite(blocks[i]).addChildTo(this).setPosition(gridX.span(x) + 32, gridY.span(y) + 32);
+                b.alpha = 0.2;
+            }
+        }
 
         Label({
-            text: "陣取りアルゴリズム",
-            fontSize: 60,
+            text: "にゃんこ陣取り\nアルゴリズム",
+            fontSize: 80,
             fontWeight: 800,
             fill: "brown",
-            strokeWidth: 20,
+            strokeWidth: 10,
             stroke: "white",
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-5))
 
-        Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center());
+        Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(0.5));
 
         BasicButton({
             width: 300,
@@ -1094,7 +1110,6 @@ phina.define('BattleScene', {
         self.applyOneStep = function(program, target, nonTarget) {
 
             const done = [];
-            let cnt = 0;
 
             applyOneStepRecursive(program, target, nonTarget);
 
@@ -1103,17 +1118,30 @@ phina.define('BattleScene', {
                 if (block === null) {
                     return;
                 }
+                if (block.name === BLOCK_NAME.empty) {
+                    return;
+                }
                 if (block.applyProgram(target, nonTarget)) {
                     program.stepOK();
                 } else {
                     program.stepNG();
                 }
                 if (block.turn === 0) {
+                    // 既に実行済みのブロックがdone配列に存在する場合、
+                    // 無限ループに入っているということなので中止する
                     if (done.some(b =>  b === block)) {
-                        if (cnt >= 3) {
-                            return;
+                        const question = Sprite("question").addChildTo(catPanel);
+                        let x, y;
+                        if (program === playerProgram) {
+                            x = fieldPanel.gridX.span(self.player.nx);
+                            y = fieldPanel.gridY.span(self.player.ny);
+                        } else {
+                            x = fieldPanel.gridX.span(self.enemy.nx);
+                            y = fieldPanel.gridY.span(self.enemy.ny);
                         }
-                        cnt += 1;
+                        question.setPosition(x, y);
+                        setTimeout(function() { question.remove()}, 400);
+                        return;
                     }
                     done.push(block);
                     applyOneStepRecursive(program, target, nonTarget);
@@ -1282,12 +1310,12 @@ phina.define('BattleScene', {
         .call(function () {
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
                 Label({
-                    text: "勝 利",
+                    text: "勝ち！",
                     fontSize: 150,
                     fill: "white",
                     stroke: "red",
                     strokeWidth: 20,
-                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                }).addChildTo(self).setPosition(self.gridX.center(0.4), self.gridY.center(-1));
                 // レベルアップ？
                 if (!self.trainingMode && self.enemyLevel >= myLevel) {
                     myLevel += 1;
@@ -1295,7 +1323,7 @@ phina.define('BattleScene', {
                 }
             } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
                 Label({
-                    text: "敗 北",
+                    text: "負け",
                     fontSize: 150,
                     fill: "white",
                     fontWeight: 800,
@@ -1953,7 +1981,9 @@ phina.define('HowToScene', {
 
         this.backgroundColor = "rgba(0, 0, 0, 0.3)";
 
-        Label({text:"あそびかた", fill:"white", fontSize: 35, fontWeight: 800}).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center(-4));
+        let step = 1;
+
+        const title = Label({text:"あそびかた", fill:"white", fontSize: 35, fontWeight: 800}).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center(-4));
 
         const label = LabelArea({
             text: "",
@@ -1963,22 +1993,33 @@ phina.define('HowToScene', {
             height: this.height - 600,
         }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
 
-        label.text = "画面下の白にゃんこをプログラムで動かして、どんどん陣地を広げてください。歩いた場所が陣地になります。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
+        label.text = "画面の下にいる白にゃんこをプログラムで動かして、陣地を広げていくゲームです。歩いた場所が陣地になります。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
 
-        Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(400, 720);
+        const time = Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(400, 720);
         const s1 = Sprite("howToArrow").addChildTo(this).setPosition(540, 775);
         s1.scaleX *= -1;
 
-        Label({text:"陣地", fill:"white", fontSize: 35}).addChildTo(this).setPosition(170, 785);
-        Sprite("howToArrow").addChildTo(this).setPosition(80, 840);
+        const area = Label({text:"陣地", fill:"white", fontSize: 35}).addChildTo(this).setPosition(170, 785);
+        const s2 = Sprite("howToArrow").addChildTo(this).setPosition(80, 840);
 
         this.on("pointstart", function() {
-            if (param && param.callback) {
-                setTimeout(function() {
-                    param.callback();
-                }, 1);
+            if (step === 1) {
+                time.remove();
+                s1.remove();
+                area.remove();
+                s2.remove();
+                label.text = "にゃんこはプログラムに従って動くので、対戦が始まったら、あなたは見ているだけです。\n\n勝てない時は、プログラムを改良してみてください。\n\nでは対戦スタート！";
+                Label({text:"プログラムを\n開くボタン", fill:"white", fontSize: 30}).addChildTo(this).setPosition(500, 760);
+                Sprite("howToArrow").addChildTo(this).setPosition(350, 840);
+                step = 2;
+            } else {
+                if (param && param.callback) {
+                    setTimeout(function() {
+                        param.callback();
+                    }, 1);
+                }
+                self.exit();
             }
-            self.exit();
         });
     },
 });
