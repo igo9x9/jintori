@@ -10,6 +10,7 @@ let myLevel = 1;
 
 ASSETS = {
     image: {
+        "logo": "img/logo.png",
         "title": "img/title.png",
 
         "empty": "img/blocks/empty.png",
@@ -44,6 +45,7 @@ ASSETS = {
         "checkStone": "img/blocks/checkStone.png",
         "startSub": "img/blocks/startSub.png",
         "gotoSub": "img/blocks/gotoSub.png",
+        "enemyArea": "img/blocks/enemyArea.png",
 
         "player": "img/player.png",
         "enemy1": "img/enemy1.png",
@@ -59,6 +61,7 @@ ASSETS = {
         "lock": "img/lock.png",
         "howToArrow": "img/howToArrow.png",
         "question": "img/question.png",
+        "exclamation": "img/exclamation.png",
     },
     spritesheet: {
         "nekoSpriteSheet": "neko.json",
@@ -94,6 +97,7 @@ const BLOCK_NAME = {
     start: "Z",
     startSub: "a",
     gotoSub: "b",
+    enemyArea: "c",
 };
 
 
@@ -125,27 +129,30 @@ phina.define('TitleScene', {
             for (let y = 0; y < gridY.columns; y = y + 1) {
                 const i = Math.floor(Math.random() * blocks.length);
                 const b = Sprite(blocks[i]).addChildTo(this).setPosition(gridX.span(x) + 32, gridY.span(y) + 32);
-                b.alpha = 0.2;
+                b.alpha = 0.1;
             }
         }
 
+        // Label({
+        //     text: "にゃんこの陣取り\nア ル ゴ リ ズ ム",
+        //     fontSize: 60,
+        //     fontWeight: 800,
+        //     fill: "white",
+        //     strokeWidth: 30,
+        //     stroke: "black",
+        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-5))
+
+        Sprite("logo").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-1));
+        Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.8)).setScale(0.2);
+
         Label({
-            text: "にゃんこ陣取り\nアルゴリズム",
-            fontSize: 80,
+            text: "TAP TO START",
+            fill: "black",
             fontWeight: 800,
-            fill: "brown",
-            strokeWidth: 10,
-            stroke: "white",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-5))
+            fontSize: 28,
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(10));
 
-        Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(0.5));
-
-        BasicButton({
-            width: 300,
-            height: 60,
-            text: "はじめる",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(5))
-        .on("pointstart", function() {
+        this.on("pointstart", function() {
             self.exit("EnemySelectScene");
         });
 
@@ -519,18 +526,31 @@ phina.define('BlockSelectScene', {
             fontSize: 30,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(3));
 
+        // タイトル
+        let titleLabel = Label({
+            text: params.block.title,
+            fontSize: 30,
+            fontWeight: 800,
+        }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.span(1.1));
+
+        // 消費ターン
+        let turnLabel = Label({
+            text: "消費ターン数：" + params.block.turn,
+            fontSize: 20,
+        }).addChildTo(this).setPosition(this.gridX.center(-4), this.gridY.span(1.6));
+
         // 青矢印ボタン
         const arrowOKButton = RectangleShape({
             width: 80,
-            height: 40,
+            height: 60,
             fill: "white",
             cornerRadius: 8,
             strokeWidth: 8,
             stroke: "black",
-        }).addChildTo(self).setPosition(self.gridX.center(2.5), self.gridY.span(1.4)).hide();
+        }).addChildTo(self).setPosition(self.gridX.center(2.5), self.gridY.span(1.3)).hide();
         Label({
-            text: "　を回転",
-            fontSize: 15,
+            text: "  回転",
+            fontSize: 20,
             fontWeight: 800,
         }).addChildTo(arrowOKButton);
         arrowOKButton.setInteractive(true);
@@ -538,20 +558,20 @@ phina.define('BlockSelectScene', {
             selectedBlock.changeArrowOKDirection();
             arrowOK = selectedBlock.arrowOK;
         });
-        Sprite("arrowOK1").addChildTo(arrowOKButton).setPosition(-25, -5);
+        Sprite("arrowOK1").addChildTo(arrowOKButton).setPosition(-23, -5);
 
         // 赤矢印ボタン
         const arrowNGButton = RectangleShape({
             width: 80,
-            height: 40,
+            height: 60,
             fill: "white",
             cornerRadius: 8,
             strokeWidth: 8,
             stroke: "black",
-        }).addChildTo(self).setPosition(self.gridX.center(5), self.gridY.span(1.4)).hide();
+        }).addChildTo(self).setPosition(self.gridX.center(5), self.gridY.span(1.3)).hide();
         Label({
-            text: "　を回転",
-            fontSize: 15,
+            text: "  回転",
+            fontSize: 20,
             fontWeight: 800,
         }).addChildTo(arrowNGButton);
         arrowNGButton.setInteractive(true);
@@ -559,7 +579,7 @@ phina.define('BlockSelectScene', {
             selectedBlock.changeArrowNGDirection();
             arrowNG = selectedBlock.arrowNG;
         });
-        Sprite("arrowNG1").addChildTo(arrowNGButton).setPosition(-25, -5);
+        Sprite("arrowNG1").addChildTo(arrowNGButton).setPosition(-23, -5);
 
         // 矢印ボタンの表示制御
         function showArrow() {
@@ -630,6 +650,8 @@ phina.define('BlockSelectScene', {
             block.on("pointstart", () => {
                 selectedBlock.changeBlock(block.name, true, arrowOK, arrowNG);
                 description.text = block.description;
+                titleLabel.text = block.title;
+                turnLabel.text = "消費ターン数：" + block.turn;
                 showArrow();
                 moveSelectMark();
             });
@@ -662,13 +684,14 @@ phina.define('BlockSelectScene', {
         addSampleBlock(BLOCK_NAME.stopLeft, this.gridX.span(7), this.gridY.span(11));
         addSampleBlock(BLOCK_NAME.random1, this.gridX.span(9), this.gridY.span(11));
         addSampleBlock(BLOCK_NAME.myArea, this.gridX.span(11), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.watch, this.gridX.span(13), this.gridY.span(11));
+        addSampleBlock(BLOCK_NAME.enemyArea, this.gridX.span(13), this.gridY.span(11));
 
         addSampleBlock(BLOCK_NAME.flagACheck, this.gridX.span(3), this.gridY.span(12.5));
         addSampleBlock(BLOCK_NAME.flagBCheck, this.gridX.span(5), this.gridY.span(12.5));
         addSampleBlock(BLOCK_NAME.enemy, this.gridX.span(7), this.gridY.span(12.5));
         addSampleBlock(BLOCK_NAME.enemyDistance, this.gridX.span(9), this.gridY.span(12.5));
         addSampleBlock(BLOCK_NAME.checkStone, this.gridX.span(11), this.gridY.span(12.5));
+        addSampleBlock(BLOCK_NAME.watch, this.gridX.span(13), this.gridY.span(12.5));
 
         markFirstSelectedBlock();
         moveSelectMark();
@@ -873,6 +896,11 @@ phina.define("Cat", {
                     x: param.field.gridX.span(self.nx + xx/5),
                     y: param.field.gridY.span(self.ny + yy/5)
                 }, moveSpeed/5)
+                .call(function () {
+                    const exclamatio = Sprite("exclamation").addChildTo(param.catPanel);
+                    exclamatio.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+                    setTimeout(function() { exclamatio.remove()}, 400);
+                })
                 .to({
                     x: param.field.gridX.span(self.nx),
                     y: param.field.gridY.span(self.ny)
@@ -1116,6 +1144,7 @@ phina.define('BattleScene', {
         self.applyOneStep = function(program, target, nonTarget) {
 
             const done = [];
+            let cnt = 0;
 
             applyOneStepRecursive(program, target, nonTarget);
 
@@ -1140,19 +1169,23 @@ phina.define('BattleScene', {
                 if (block.turn === 0) {
                     // 既に実行済みのブロックがdone配列に存在する場合、
                     // 無限ループに入っているということなので中止する
-                    if (done.some(b =>  b === block)) {
-                        const question = Sprite("question").addChildTo(catPanel);
-                        let x, y;
-                        if (program === playerProgram) {
-                            x = fieldPanel.gridX.span(self.player.nx);
-                            y = fieldPanel.gridY.span(self.player.ny);
-                        } else {
-                            x = fieldPanel.gridX.span(self.enemy.nx);
-                            y = fieldPanel.gridY.span(self.enemy.ny);
+                    if (block.name !== BLOCK_NAME.gotoSub && done.some(b =>  b === block)) {
+                        cnt += 1;
+                        // 50に特に意味はない。何度も繰り返されているなら無限ループしているとみなして中止する
+                        if (cnt > 50) {
+                            const question = Sprite("question").addChildTo(catPanel);
+                            let x, y;
+                            if (program === playerProgram) {
+                                x = fieldPanel.gridX.span(self.player.nx);
+                                y = fieldPanel.gridY.span(self.player.ny);
+                            } else {
+                                x = fieldPanel.gridX.span(self.enemy.nx);
+                                y = fieldPanel.gridY.span(self.enemy.ny);
+                            }
+                            question.setPosition(x, y);
+                            setTimeout(function() { question.remove()}, 400);
+                            return;
                         }
-                        question.setPosition(x, y);
-                        setTimeout(function() { question.remove()}, 400);
-                        return;
                     }
                     done.push(block);
                     applyOneStepRecursive(program, target, nonTarget);
@@ -1325,6 +1358,17 @@ phina.define('BattleScene', {
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-4))
         .tweener.wait(500)
         .call(function () {
+
+            const backButton = BasicButton({
+                width: 250,
+                height: 60,
+                text: "対戦相手を変える",
+                primary: true,
+            }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(2))
+            .on("pointstart", function () {
+                self.exit("EnemySelectScene");
+            });
+
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
                 Label({
                     text: "勝ち！",
@@ -2172,8 +2216,9 @@ function Program(playerOrEnemy, trainingMode) {
     self.blocks = [];
 
     // サブルーチンからの戻り先のブロック
-    // サブルーチンに入ったら保管し、サブルーチンを出たらnullにする
-    self.blockToReturnWhenSubroutineDone = null;
+    // サブルーチンに入ったらpushし、サブルーチンを出たらpopする
+    self.blockToReturnWhenSubroutineDone = [];
+    self.returnFromSubroutine = false;
 
     function initBlocks() {
         // ブロックの初期配置
@@ -2213,14 +2258,14 @@ function Program(playerOrEnemy, trainingMode) {
 
     self.startSubroutine = function (block) {
 
-        // すでにサブルーチンに入っていたら、抜ける
-        if (self.blockToReturnWhenSubroutineDone) {
-            self.blockToReturnWhenSubroutineDone = null;
+        // サブルーチンから抜けてきた時なら、サブルーチンには入らない
+        if (self.returnFromSubroutine) {
+            self.returnFromSubroutine = false;
             return;
         }
 
         // サブルーチンからの戻り先のブロックを保管
-        self.blockToReturnWhenSubroutineDone = {x: self.x, y: self.y};
+        self.blockToReturnWhenSubroutineDone.push({x: self.x, y: self.y});
         self.lastX = self.x;
         self.lastY = self.y;
         self.blockHistory.push({block: block, flagA: playerProgramingFlgA, flagB: playerProgramingFlgB});
@@ -2362,9 +2407,11 @@ function Program(playerOrEnemy, trainingMode) {
     };
 
     self.returnToStart = function() {
-        if (self.blockToReturnWhenSubroutineDone) {
-            self.x = self.blockToReturnWhenSubroutineDone.x;
-            self.y = self.blockToReturnWhenSubroutineDone.y;
+        if (self.blockToReturnWhenSubroutineDone.length > 0) {
+            self.x = self.blockToReturnWhenSubroutineDone[self.blockToReturnWhenSubroutineDone.length - 1].x;
+            self.y = self.blockToReturnWhenSubroutineDone[self.blockToReturnWhenSubroutineDone.length - 1].y;
+            self.blockToReturnWhenSubroutineDone.pop();
+            self.returnFromSubroutine = true;
         } else {
             self.x = 4;
             self.y = 1;
@@ -2373,7 +2420,7 @@ function Program(playerOrEnemy, trainingMode) {
 
     self.getActiveBlock = function() {
         // ブロックそのものが無い（＝プログラムの領域外）なら、エントリポイントに戻る
-        if (!self.blocks[self.y][self.x]) {
+        if (!self.blocks[self.y] || !self.blocks[self.y][self.x]) {
             self.returnToStart();
         }
         // いまのブロックがなにも指定されていない場合は、エントリポイントに戻る
@@ -2425,7 +2472,7 @@ function Program(playerOrEnemy, trainingMode) {
             self.blockHistory.push({block: self.blocks[self.y][self.x], flagA: enemyProgramingFlgA, flagB: enemyProgramingFlgB});
         }
 
-        if (self.blockHistory.length > 20) {
+        if (self.blockHistory.length > 50) {
             self.blockHistory.shift();
         }
 
@@ -2501,6 +2548,7 @@ phina.define('Block', {
 
         this.name = "";
         this.description = "";
+        this.title = "";
         this.sampleMode = false;
         this.doubleArrow = false;
         this.arrowOK = "down";
@@ -2634,6 +2682,20 @@ phina.define('Block', {
                     }
                 } else {
                     if (fieldName === "black" || fieldName === "blackStone") {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            // 目の前が敵陣か
+            if (self.name === BLOCK_NAME.enemyArea) {
+                const fieldName = target.getForwardFieldName(target.direction);
+                if (target.playerOrEnemy === "player") {
+                    if (fieldName === "black" || fieldName === "blackStone") {
+                        return true;
+                    }
+                } else {
+                    if (fieldName === "white" || fieldName === "whiteStone") {
                         return true;
                     }
                 }
@@ -2795,138 +2857,171 @@ phina.define('Block', {
 
         this.changeBlock = function(name, sampleMode, arrowOKDirection, arrowNGDirection) {
             if (name === BLOCK_NAME.turnRight) {
+                self.title = "右旋回";
                 self.setImage("turnRight");
                 self.description = "その場で右に向きを変える。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.turnLeft) {
+                self.title = "左旋回";
                 self.setImage("turnLeft");
                 self.description = "その場で左に向きを変える。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.goBack) {
+                self.title = "後退";
                 self.setImage("goBack");
                 self.description = "向きを変えずに１マス後退する。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.forward) {
+                self.title = "前進";
                 self.setImage("forward");
                 self.description = "１マス前進する。障害物に当たったら前進できない。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.putStone) {
+                self.title = "石配置";
                 self.setImage("putStone");
                 self.description = "足元に「おじゃま石」を置く。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.non) {
+                self.title = "コネクタ";
                 self.setImage("non");
-                self.description = "なにも指示しない、という命令。";
+                self.description = "なにも指示しない。離れた場所にある命令チップ同士をつなげる線として使う。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.stop) {
+                self.title = "前進判定";
                 self.setImage("stop");
                 self.description = "前進できるかどうかを判定する。前進できるなら青矢印へ。障害物があり前進できない場合、赤矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.random1) {
+                self.title = "ランダム";
                 self.setImage("random1");
                 self.description = "２分の１の確率で、青矢印と赤矢印のどちらかへ進む。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.myArea) {
+                self.title = "自陣判定";
                 self.setImage("myArea");
                 self.description = "１マス先が自分の陣地かどうかを判定する。自分の陣地なら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
+            } else if (name === BLOCK_NAME.enemyArea) {
+                self.title = "敵陣判定";
+                self.setImage("enemyArea");
+                self.description = "１マス先が敵の陣地かどうかを判定する。敵の陣地なら青矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
             } else if (name === BLOCK_NAME.watch) {
+                self.title = "時間判定";
                 self.setImage("watch");
-                self.description = "残り時間が半分以下なら、青矢印へ。";
+                self.description = "残り時間が半分以下なら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagAon) {
+                self.title = "フラグAオン";
                 self.setImage("flagAon");
                 self.description = "フラグＡをオンにする。フラグとは、オンとオフを記憶しておく変数。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagAoff) {
+                self.title = "フラグAオフ";
                 self.setImage("flagAoff");
                 self.description = "フラグＡをオフにする。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagACheck) {
+                self.title = "フラグA判定";
                 self.setImage("flagACheck");
                 self.description = "フラグＡがオンなら青矢印へ、オフなら赤矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagBon) {
+                self.title = "フラグBオン";
                 self.setImage("flagBon");
                 self.description = "フラグＢをオンにする。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagBoff) {
+                self.title = "フラグBオフ";
                 self.setImage("flagBoff");
                 self.description = "フラグＢをオフにする。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.flagBCheck) {
+                self.title = "フラグB判定";
                 self.setImage("flagBCheck");
                 self.description = "フラグＢがオンなら青矢印へ、オフなら赤矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.enemy) {
+                self.title = "敵方向判定";
                 self.setImage("enemy");
-                self.description = "距離に関係なく、敵が自分の前方にいるかどうかを判定する。前方にいるなら青矢印へ。";
+                self.description = "距離に関係なく、敵が自分の前方（扇形）にいるかを判定する。前方にいるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.turnToEnemy) {
+                self.title = "索敵";
                 self.setImage("turnToEnemy");
                 self.description = "敵がいる方向を向く。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.goRight) {
+                self.title = "斜め右前進";
                 self.setImage("goRight");
                 self.description = "右斜め前に１マス前進する。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.goLeft) {
+                self.title = "斜め左前進";
                 self.setImage("goLeft");
                 self.description = "左斜め前に１マス前進する。";
                 self.doubleArrow = false;
                 self.turn = 1;
             } else if (name === BLOCK_NAME.stopRight) {
+                self.title = "斜め右判定";
                 self.setImage("stopRight");
                 self.description = "右斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.stopLeft) {
+                self.title = "斜め左判定";
                 self.setImage("stopLeft");
                 self.description = "左斜め前に前進できるかどうかを判定する。前進できるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.enemyDistance) {
+                self.title = "敵距離判定";
                 self.setImage("enemyDistance");
                 self.description = "敵が近く（自分を中心に５×５マスの正方形の領域）に存在するかを判定する。存在するなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.checkStone) {
+                self.title = "石存在判定";
                 self.setImage("checkStone");
                 self.description = "足元に自分のおじゃま石があるかどうかを判定する。あるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.startSub) {
+                self.title = "サブルーチン";
                 self.setImage("startSub");
                 self.description = "サブルーチンの入り口。サブルーチンとは、別の場所から呼び出して使うプログラムのかたまり。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.gotoSub) {
+                self.title = "サブルーチン";
                 self.setImage("gotoSub");
                 self.description = "サブルーチンを実行する。サブルーチンが終わると、ここにまた戻る。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
+                self.title = "チップなし";
                 self.setImage("empty");
-                self.description = "命令なし。";
+                self.description = "命令チップなし。命令チップが無い場合は、スタート地点に戻る。";
                 self.doubleArrow = false;
                 self.turn = 0;
             }
