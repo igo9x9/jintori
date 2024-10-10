@@ -133,15 +133,6 @@ phina.define('TitleScene', {
             }
         }
 
-        // Label({
-        //     text: "にゃんこの陣取り\nア ル ゴ リ ズ ム",
-        //     fontSize: 60,
-        //     fontWeight: 800,
-        //     fill: "white",
-        //     strokeWidth: 30,
-        //     stroke: "black",
-        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-5))
-
         Sprite("logo").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-1));
         Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.8)).setScale(0.2);
 
@@ -150,24 +141,24 @@ phina.define('TitleScene', {
             fill: "black",
             fontWeight: 800,
             fontSize: 28,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(10));
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(12));
 
         this.on("pointstart", function() {
             self.exit("EnemySelectScene");
         });
 
-        BasicButton({
-            width: 300,
-            height: 60,
-            text: "初期化（開発用）",
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
-        .on("pointstart", function() {
-            myLevel = 1;
-            localStorage.removeItem("level");
-            localStorage.removeItem("work");
-            localStorage.removeItem("workEnemy");
-            alert("倉庫以外を初期状態に戻しました。");
-        });
+        // BasicButton({
+        //     width: 300,
+        //     height: 60,
+        //     text: "初期化（開発用）",
+        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
+        // .on("pointstart", function() {
+        //     myLevel = 1;
+        //     localStorage.removeItem("level");
+        //     localStorage.removeItem("work");
+        //     localStorage.removeItem("workEnemy");
+        //     alert("倉庫以外を初期状態に戻しました。");
+        // });
 
         const query = new URLSearchParams(window.location.search);
 
@@ -369,7 +360,7 @@ phina.define('EnemySelectScene', {
             enemy2_3Button.setInteractive(true);
             enemy2_3Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cDYYd4o2KcFmnUeBDP41zIOORtqEri2nzGlg5YOmSbgJbipLZnCmetsJvOI2MwzmBTFOQWKfQXewOAlHCxLSMB");
+                enemyProgram.import("0yvK5hN4cCmFF7l2epdPqykgeWHrq4NtcFZ1pmufbHPziQGVLmshexW2t3VYGshwGjKWwFAyiibPxynMiXpEMCyG2sHLs0OosC4MGcQNog2CguAa");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 6});
             });
         }
@@ -493,7 +484,7 @@ phina.define('BlockSelectScene', {
         let arrowOK = params.block.arrowOK;
         let arrowNG = params.block.arrowNG;
 
-        if (params.block.name === BLOCK_NAME.empty || params.block.name === BLOCK_NAME.non) {
+        if (params.block.name === BLOCK_NAME.empty) {
             arrowOK = "down";
             arrowNG = "right";
         }
@@ -1123,18 +1114,21 @@ phina.define('BattleScene', {
         }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.span(15));
         playerEditButton.setInteractive(true);
         playerEditButton.on("pointstart", function() {
-            // self.exit("ProgramingScene", {targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel});
             App.pushScene(ProgramingScene({targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel, battleScene: self}));
         });
 
         // その他ボタン
-        const stepButton = BasicButton({
-            text: "メニュー",
-            width: 130,
-            height: 50,
-        }).addChildTo(self).setPosition(self.gridX.span(13.5), self.gridY.span(15));
-        stepButton.setInteractive(true);
-        stepButton.on("pointstart", function() {
+        // const stepButton = BasicButton({
+        //     text: "メニュー",
+        //     width: 130,
+        //     height: 50,
+        // }).addChildTo(self).setPosition(self.gridX.span(13.5), self.gridY.span(15));
+        // stepButton.setInteractive(true);
+        // stepButton.on("pointstart", function() {
+        //     App.pushScene(BattleMenuScene({battleScene: self}));
+        // });
+        fieldPanel.setInteractive(true);
+        fieldPanel.on("pointstart", function() {
             App.pushScene(BattleMenuScene({battleScene: self}));
         });
 
@@ -1359,15 +1353,15 @@ phina.define('BattleScene', {
         .tweener.wait(500)
         .call(function () {
 
-            const backButton = BasicButton({
-                width: 250,
-                height: 60,
-                text: "対戦相手を変える",
-                primary: true,
-            }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(2))
-            .on("pointstart", function () {
-                self.exit("EnemySelectScene");
-            });
+            // const backButton = BasicButton({
+            //     width: 250,
+            //     height: 60,
+            //     text: "対戦相手を変える",
+            //     primary: true,
+            // }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(2))
+            // .on("pointstart", function () {
+            //     self.exit("EnemySelectScene");
+            // });
 
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
                 Label({
@@ -3029,15 +3023,25 @@ phina.define('Block', {
             self.sampleMode = sampleMode;
 
             if (self.doubleArrow) {
-                if (arrowOKDirection) {
-                    this.arrowOK = arrowOKDirection;
+                // OKとNGが同じ方向だとNGだけ表示されてしまうので、デフォルトの方向にする
+                if (arrowOKDirection === arrowNGDirection) {
+                    this.arrowOK = "down";
+                    this.arrowNG = "right";
                 } else {
-                    this.arrowOK = "leftDown";
-                }
-                if (arrowNGDirection) {
-                    this.arrowNG = arrowNGDirection;
-                } else {
-                    this.arrowNG = "rightDown";
+                    if (arrowOKDirection) {
+                        this.arrowOK = arrowOKDirection;
+                    } else {
+                        this.arrowOK = "leftDown";
+                    }
+                    if (arrowNGDirection) {
+                        this.arrowNG = arrowNGDirection;
+                    } else {
+                        if (this.arrowOK !== "right") {
+                            this.arrowNG = "right";
+                        } else {
+                            this.arrowNG = "rightDown";
+                        }
+                    }
                 }
             } else {
                 if (arrowOKDirection) {
