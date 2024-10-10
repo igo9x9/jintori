@@ -134,13 +134,15 @@ phina.define('TitleScene', {
         }
 
         Sprite("logo").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-1));
-        Sprite("title").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-2.8)).setScale(0.2);
+        Sprite("title").addChildTo(this).setPosition(this.gridX.center(-0.2), this.gridY.center(-2.9));
 
         Label({
-            text: "TAP TO START",
+            text: "タップして開始",
             fill: "black",
             fontWeight: 800,
-            fontSize: 28,
+            fontSize: 27,
+            // stroke: "white",
+            // strokeWidth: 1,
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(12));
 
         this.on("pointstart", function() {
@@ -837,6 +839,9 @@ phina.define("Cat", {
 
         // 足元のフィールドのname
         self.getFieldName = function() {
+            if (!battleField[self.ny][self.nx]) {
+                return "green";
+            }
             return battleField[self.ny][self.nx].name;
         };
 
@@ -1524,7 +1529,7 @@ phina.define('BattleMenuScene', {
         });
 
         const gotoTitleButton = BasicButton({
-            text: "この対戦を終える",
+            text: "対戦相手を選ぶ",
             width: 350,
             height: 50,
             primary: true,
