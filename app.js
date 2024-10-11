@@ -819,6 +819,7 @@ phina.define("Cat", {
 
         // 石を置く
         self.putStone = function () {
+
             let color;
 
             if (param.playerOrEnemy === "player") {
@@ -827,49 +828,36 @@ phina.define("Cat", {
                 color = "black";
             }
 
-            // すでに自分の石があるならおわり
+            // すでに自分の石があるなら置けないので終了
             if (battleField[self.ny][self.nx] && battleField[self.ny][self.nx].name === color + "Stone") {
-                const exclamatio = Sprite("exclamation").addChildTo(param.catPanel);
-                exclamatio.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
-                setTimeout(function() { exclamatio.remove()}, 400);
+                // 「！」を出すアニメーション
+                const exclamation = Sprite("exclamation").addChildTo(param.catPanel);
+                exclamation.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+                setTimeout(function() { exclamation.remove()}, 400);
                 return;
             }
 
-            addArea(self.nx, self.ny);
+            // 石を置く
+            createArea(self.nx, self.ny);
             const stone = Sprite(color + "Stone").addChildTo(param.field)
                 .setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
-            stone.name = color + "Stone";
-            battleField[self.ny][self.nx] = stone;
+            battleField[self.ny][self.nx].name = color + "Stone";
 
-            // 石の前後左右は自分の陣地になる
-            // ただし、すでに相手の陣地であるなら、打ち消し合って空陣地にもどる
-            function replaceArea(color, x, y) {
-                const enemyColor = color === "white" ? "black": "white";
-                if (battleField[y][x] && battleField[y][x].name === enemyColor && battleField[y][x].name !== enemyColor + "Stone") {
-                    // 敵の陣地を削除するのみ
-                    const enemyArea = battleField[y][x];
-                    enemyArea.tweener.to({scaleX: 0, scaleY: 0}, 200)
-                        .call(function () {
-                            enemyArea.remove();
-                            battleField[y][x] = null;
-                        })
-                        .play();
-                } else if (!battleField[y][x]) {
-                    addArea(x, y);
-                }
-            }
+            addArea(self.nx, self.ny);
+
             if (self.ny - 1 > 0) {
-                replaceArea(color, self.nx, self.ny - 1);
+                addArea(self.nx, self.ny - 1);
             }
             if (self.ny + 1 < 12) {
-                replaceArea(color, self.nx, self.ny + 1);
+                addArea(self.nx, self.ny + 1);
             }
             if (self.nx - 1 > 0) {
-                replaceArea(color, self.nx - 1, self.ny);
+                addArea(self.nx - 1, self.ny);
             }
             if (self.nx + 1 < 9) {
-                replaceArea(color, self.nx + 1, self.ny);
+                addArea(self.nx + 1, self.ny);
             }
+
         };
 
         // 目の前のフィールドのname
@@ -911,29 +899,72 @@ phina.define("Cat", {
             }
         };
 
-        function addArea(x, y) {
+        function createArea(x, y) {
             let color;
             if (param.playerOrEnemy === "player") {
                 color = "white";
             } else {
                 color = "black";
             }
-            // 自分の色のおじゃま石があるなら不要
-            if (battleField[y][x] && battleField[y][x].name === color + "Stone") {
+            const area = Sprite(color).addChildTo(param.field)
+                .setPosition(param.field.gridX.span(x), param.field.gridY.span(y));
+            area.setScale(0.1);
+            area.tweener.scaleTo(1, 200).play();
+            area.alpha = 0.6;
+            area.level = 0;
+            area.name = color;
+            battleField[y][x] = area;
+        }
+
+        // 自分の陣地にする
+        function addArea(x, y) {
+
+            let color, enemyColor;
+            if (param.playerOrEnemy === "player") {
+                color = "white";
+                enemyColor = "black";
+            } else {
+                color = "black";
+                enemyColor = "white";
+            }
+
+            // どちらの陣地でもない場合、単純に自分の陣地にできる
+            if (!battleField[y][x]) {
+                createArea(x, y);
                 return;
             }
-            // if (!battleField[y][x] || battleField[y][x].name !== color) {
-                const area = Sprite(color).addChildTo(param.field)
-                    .setPosition(param.field.gridX.span(x), param.field.gridY.span(y));
-                area.setScale(0.1);
-                area.alpha = 0.6;
-                area.tweener.scaleTo(1, 200).play();
-                area.name = color;
-                if (battleField[y][x]) {
+
+            // 敵の石がある場合、なにもできない
+            if (battleField[y][x].name === enemyColor + "Stone") {
+                return;
+            }
+
+            // すでに自分の石がある場合、透明度をなしにするだけ
+            if (battleField[y][x].name === color + "Stone") {
+                battleField[y][x].alpha = 1;
+                return;
+            }
+
+            // すでに自分の陣地の場合、レベルを上げるだけ
+            if (battleField[y][x].name === color) {
+                battleField[y][x].level += 1;
+                battleField[y][x].alpha = 0.6 + battleField[y][x].level * 0.2;
+                return;
+            }
+
+            // 敵の陣地の場合、レベルを下げるか、相殺するか
+            if (battleField[y][x].name === enemyColor) {
+                if (battleField[y][x].level === 0) {
+                    // 相殺
                     battleField[y][x].remove();
+                } else {
+                    battleField[y][x].level -= 1;
+                    battleField[y][x].alpha = 0.6 + battleField[y][x].level * 0.2;
                 }
-                battleField[y][x] = area;
-            // }
+                return;
+            }
+
+            throw("ここには到達しない");
         }
 
         // 前進
@@ -967,7 +998,6 @@ phina.define("Cat", {
                 }, moveSpeed)
                 .call(function() {
                     ss.gotoAndPlay(direction);
-                    // addArea(self.nx, self.ny);
                 })
                 .play();
         }
@@ -1036,7 +1066,6 @@ phina.define("Cat", {
                 .call(function() {
                     self.ny += 1;
                     ss.gotoAndPlay("north");
-                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
@@ -1056,7 +1085,6 @@ phina.define("Cat", {
                 .call(function() {
                     self.ny -= 1;
                     ss.gotoAndPlay("south");
-                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
@@ -1076,7 +1104,6 @@ phina.define("Cat", {
                 .call(function() {
                     self.nx -= 1;
                     ss.gotoAndPlay("east");
-                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
@@ -1096,7 +1123,6 @@ phina.define("Cat", {
                 .call(function() {
                     self.nx += 1;
                     ss.gotoAndPlay("west");
-                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
