@@ -155,19 +155,20 @@ phina.define('TitleScene', {
 
         let stop = false;
 
-        // BasicButton({
-        //     width: 300,
-        //     height: 60,
-        //     text: "初期化（開発用）",
-        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
-        // .on("pointstart", function(e) {
-        //     myLevel = 1;
-        //     localStorage.removeItem("level");
-        //     localStorage.removeItem("work");
-        //     localStorage.removeItem("workEnemy");
-        //     alert("倉庫以外を初期状態に戻しました。");
-        //     stop = true;
-        // });
+        BasicButton({
+            width: 300,
+            height: 60,
+            text: "初期化（開発用）",
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
+        .on("pointstart", function(e) {
+            myLevel = 1;
+            localStorage.removeItem("level");
+            localStorage.removeItem("work");
+            localStorage.removeItem("workEnemy");
+            playerProgram = Program("player", false);
+            alert("倉庫以外を初期状態に戻しました。");
+            stop = true;
+        });
 
         const query = new URLSearchParams(window.location.search);
 
@@ -225,7 +226,7 @@ phina.define('EnemySelectScene', {
         enemy1_1Button.setInteractive(true);
         enemy1_1Button.on("pointstart", function() {
             enemyProgram = new Program("enemy", false);
-            enemyProgram.import("0yvK5hN4cCmGJehhjU6_tigYNoVo66gksYO9QiYG");
+            enemyProgram.import("0yvK5hN4cCOGJeCUvnIzvTNdUdNDADpLuCJgPGMGBIWqbR");
             self.exit("BattleScene", {trainingMode: false, enemyLevel: 1});
         });
 
@@ -253,7 +254,7 @@ phina.define('EnemySelectScene', {
             enemy1_2Button.setInteractive(true);
             enemy1_2Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cDYYFouXVjbgg57QwYA9XGeTTVW75iCqWonyNr5ZGMmiFwQCOB");
+                enemyProgram.import("0yvK5hN4cCOGJeCUvnIzvTNdUQOClD8da-AqvTzSd2GAcGJGBZ0qa5");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 2});
             });
         }
@@ -282,7 +283,7 @@ phina.define('EnemySelectScene', {
             enemy1_3Button.setInteractive(true);
             enemy1_3Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cDYb16AXFgbggPJkMQ5K4y7sEwROhaCF3NCrQZvh2hbb4y-2TwaYc2Bn02BOgLmwEWB");
+                enemyProgram.import("0yvK5hN4cCOGJeCXhi9v2Wa6g5KykIeyOMdQAakYzAFe82suYNaTsWV2EZnMD1mXAdAhZthkueWPnYxioWOKlEziWGSgFnpNCYk");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 3});
             });
         }
@@ -311,7 +312,7 @@ phina.define('EnemySelectScene', {
             enemy2_1Button.setInteractive(true);
             enemy2_1Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cCmG5wuWVBaRGTA1");
+                enemyProgram.import("");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 4});
             });
         }
@@ -340,7 +341,7 @@ phina.define('EnemySelectScene', {
             enemy2_2Button.setInteractive(true);
             enemy2_2Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cDYYd4o2KcFmnUeBDP41zIOORtqEri2nzGlg5YOmSbgJbipLZnCmf5MEV8on6AwHzAWJCEwE");
+                enemyProgram.import("");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 5});
             });
         }
@@ -369,7 +370,7 @@ phina.define('EnemySelectScene', {
             enemy2_3Button.setInteractive(true);
             enemy2_3Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cCmFF7l2epdPqykgeWHrq4NtcFZ1pmufbHPziQGVLmshexW2t3VYGshwGjKWwFAyiibPxynMiXpEMCyG2sHLs0OosC4MGcQNog2CguAa");
+                enemyProgram.import("");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 6});
             });
         }
@@ -398,7 +399,7 @@ phina.define('EnemySelectScene', {
             enemy3_1Button.setInteractive(true);
             enemy3_1Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN-lsjQRJY0ir7MUceC1xqWJEUQW4nFbpIwzaI4yTpBNC_5RDQcM5iAee6xndd0GlHZzjDcxo5LGKkZ85sj_JQCJyKJYcQ4MOm7YnxOAn");
+                enemyProgram.import("");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 7});
             });
         }
@@ -427,7 +428,7 @@ phina.define('EnemySelectScene', {
             enemy3_2Button.setInteractive(true);
             enemy3_2Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("3vr9j2zCWxgt5R26bEZGYsEI2BSS2UVFsJ6VMyjelsOsZWi6EInHS5ayGXwhMvnLluAGC9eZKFHLhRXBV4GqNNb9kDOFV2ZRwttNAmLcNxk8kcUeM1RJZwTYoyHIRlxgDmfYCTx7HbLMwGcdjG5U-RQ4PDAqGLjLqf9FEmLgbMcaHGboLAsLgE");
+                enemyProgram.import("");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 8});
             });
         }
@@ -751,8 +752,8 @@ phina.define("Cat", {
         this.addChildTo(param.catPanel);
         this.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
 
-        // 外壁にぶつかる？
-        self.bumpWall = function (direction, rightOrLeft) {
+        // なにかにぶつかる？
+        self.bumpSomething = function (direction, rightOrLeft) {
             let x = self.nx, y = self.ny;
             if (direction === "north") {
                 y -= 1;
@@ -799,6 +800,13 @@ phina.define("Cat", {
                     }
                 }
             }
+            // 敵の陣地
+            if (battleField[y][x] && battleField[y][x].name === "black" && param.playerOrEnemy === "player") {
+                return true;
+            }
+            if (battleField[y][x] && battleField[y][x].name === "white" && param.playerOrEnemy === "enemy") {
+                return true;
+            }
             // おじゃま石
             if (battleField[y][x] && battleField[y][x].name === "blackStone" && param.playerOrEnemy === "player") {
                 return true;
@@ -812,15 +820,56 @@ phina.define("Cat", {
         // 石を置く
         self.putStone = function () {
             let color;
+
             if (param.playerOrEnemy === "player") {
                 color = "white";
             } else {
                 color = "black";
             }
+
+            // すでに自分の石があるならおわり
+            if (battleField[self.ny][self.nx] && battleField[self.ny][self.nx].name === color + "Stone") {
+                const exclamatio = Sprite("exclamation").addChildTo(param.catPanel);
+                exclamatio.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+                setTimeout(function() { exclamatio.remove()}, 400);
+                return;
+            }
+
+            addArea(self.nx, self.ny);
             const stone = Sprite(color + "Stone").addChildTo(param.field)
                 .setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
             stone.name = color + "Stone";
             battleField[self.ny][self.nx] = stone;
+
+            // 石の前後左右は自分の陣地になる
+            // ただし、すでに相手の陣地であるなら、打ち消し合って空陣地にもどる
+            function replaceArea(color, x, y) {
+                const enemyColor = color === "white" ? "black": "white";
+                if (battleField[y][x] && battleField[y][x].name === enemyColor && battleField[y][x].name !== enemyColor + "Stone") {
+                    // 敵の陣地を削除するのみ
+                    const enemyArea = battleField[y][x];
+                    enemyArea.tweener.to({scaleX: 0, scaleY: 0}, 200)
+                        .call(function () {
+                            enemyArea.remove();
+                            battleField[y][x] = null;
+                        })
+                        .play();
+                } else if (!battleField[y][x]) {
+                    addArea(x, y);
+                }
+            }
+            if (self.ny - 1 > 0) {
+                replaceArea(color, self.nx, self.ny - 1);
+            }
+            if (self.ny + 1 < 12) {
+                replaceArea(color, self.nx, self.ny + 1);
+            }
+            if (self.nx - 1 > 0) {
+                replaceArea(color, self.nx - 1, self.ny);
+            }
+            if (self.nx + 1 < 9) {
+                replaceArea(color, self.nx + 1, self.ny);
+            }
         };
 
         // 目の前のフィールドのname
@@ -862,7 +911,7 @@ phina.define("Cat", {
             }
         };
 
-        function addArea() {
+        function addArea(x, y) {
             let color;
             if (param.playerOrEnemy === "player") {
                 color = "white";
@@ -870,27 +919,27 @@ phina.define("Cat", {
                 color = "black";
             }
             // 自分の色のおじゃま石があるなら不要
-            if (battleField[self.ny][self.nx] && battleField[self.ny][self.nx].name === color + "Stone") {
+            if (battleField[y][x] && battleField[y][x].name === color + "Stone") {
                 return;
             }
-            if (!battleField[self.ny][self.nx] || battleField[self.ny][self.nx].name !== color) {
+            // if (!battleField[y][x] || battleField[y][x].name !== color) {
                 const area = Sprite(color).addChildTo(param.field)
-                    .setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+                    .setPosition(param.field.gridX.span(x), param.field.gridY.span(y));
                 area.setScale(0.1);
                 area.alpha = 0.6;
                 area.tweener.scaleTo(1, 200).play();
                 area.name = color;
-                if (battleField[self.ny][self.nx]) {
-                    battleField[self.ny][self.nx].remove();
+                if (battleField[y][x]) {
+                    battleField[y][x].remove();
                 }
-                battleField[self.ny][self.nx] = area;
-            }
+                battleField[y][x] = area;
+            // }
         }
 
         // 前進
 
         function moving(direction, rightOrLeft, xx, yy) {
-            if (self.bumpWall(direction, rightOrLeft)) {
+            if (self.bumpSomething(direction, rightOrLeft)) {
                 self.tweener
                 .to({
                     x: param.field.gridX.span(self.nx + xx/5),
@@ -918,7 +967,7 @@ phina.define("Cat", {
                 }, moveSpeed)
                 .call(function() {
                     ss.gotoAndPlay(direction);
-                    addArea();
+                    // addArea(self.nx, self.ny);
                 })
                 .play();
         }
@@ -974,7 +1023,7 @@ phina.define("Cat", {
         // 後退
         self.backToSouth = function() {
             ss.gotoAndPlay("workToNorth");
-            if (self.bumpWall("south")) {
+            if (self.bumpSomething("south")) {
                 self.tweener
                 .to({y: param.field.gridY.span(self.ny + 0.5)}, moveSpeed/2)
                 .to({y: param.field.gridY.span(self.ny)}, 100)
@@ -987,14 +1036,14 @@ phina.define("Cat", {
                 .call(function() {
                     self.ny += 1;
                     ss.gotoAndPlay("north");
-                    addArea();
+                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
 
         self.backToNorth = function() {
             ss.gotoAndPlay("workToSouth");
-            if (self.bumpWall("north")) {
+            if (self.bumpSomething("north")) {
                 self.tweener
                 .to({y: param.field.gridY.span(self.ny - 0.5)}, moveSpeed/2)
                 .to({y: param.field.gridY.span(self.ny)}, 100)
@@ -1007,14 +1056,14 @@ phina.define("Cat", {
                 .call(function() {
                     self.ny -= 1;
                     ss.gotoAndPlay("south");
-                    addArea();
+                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
 
         self.backToWest = function() {
             ss.gotoAndPlay("workToEast");
-            if (self.bumpWall("west")) {
+            if (self.bumpSomething("west")) {
                 self.tweener
                 .to({x: param.field.gridX.span(self.nx - 0.5)}, moveSpeed/2)
                 .to({x: param.field.gridX.span(self.nx)}, 100)
@@ -1027,14 +1076,14 @@ phina.define("Cat", {
                 .call(function() {
                     self.nx -= 1;
                     ss.gotoAndPlay("east");
-                    addArea();
+                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
 
         self.backToEast = function() {
             ss.gotoAndPlay("workToWest");
-            if (self.bumpWall("east")) {
+            if (self.bumpSomething("east")) {
                 self.tweener
                 .to({x: param.field.gridX.span(self.nx + 0.5)}, moveSpeed/2)
                 .to({x: param.field.gridX.span(self.nx)}, 100)
@@ -1047,7 +1096,7 @@ phina.define("Cat", {
                 .call(function() {
                     self.nx += 1;
                     ss.gotoAndPlay("west");
-                    addArea();
+                    // addArea(self.nx, self.ny);
                 })
                 .play();
         };
@@ -1281,7 +1330,8 @@ phina.define('BattleScene', {
             if (data) {
                 playerProgram.import(data);
             } else {
-                playerProgram.import("0yvK5hN4cCmGOSAXYIHbRAucjJgU");
+                // プレイヤーのデフォルトプラグラム
+                playerProgram.import("0yvK5hN4cCOGJeCUvnIzvTNdUdNDADpLuCJgPGMGBIWqbR");
             }
         }
 
@@ -2078,7 +2128,7 @@ phina.define('HowToScene', {
             height: this.height - 600,
         }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
 
-        label.text = "画面の下にいる白にゃんこをプログラムで動かして、陣地を広げていくゲームです。歩いた場所が陣地になります。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
+        label.text = "画面の下にいる白にゃんこをプログラムで動かして、陣地を広げていくゲームです。\n\n制限時間が終わったときに、陣地が広いほうが勝ち！";
 
         const time = Label({text:"制限時間", fill:"white", fontSize: 35}).addChildTo(this).setPosition(400, 720);
         const s1 = Sprite("howToArrow").addChildTo(this).setPosition(540, 775);
@@ -2088,15 +2138,19 @@ phina.define('HowToScene', {
         const s2 = Sprite("howToArrow").addChildTo(this).setPosition(80, 840);
 
         this.on("pointstart", function() {
+            let tmp1, tmp2;
             if (step === 1) {
                 time.remove();
                 s1.remove();
                 area.remove();
                 s2.remove();
-                label.text = "にゃんこはプログラムに従って動くので、対戦が始まったら、あなたは見ているだけです。\n\n勝てない時は、プログラムを改良してみてください。\n\nでは対戦スタート！";
-                Label({text:"プログラムを\n開くボタン", fill:"white", fontSize: 30}).addChildTo(this).setPosition(500, 760);
-                Sprite("howToArrow").addChildTo(this).setPosition(350, 840);
+                label.text = "にゃんこが「おじゃま石」を置くと、その石の周囲が陣地になります。\n\n相手の陣地には入れません。でも、相手の石の近くに自分の石を置いて陣地と陣地が重なると、その部分の陣地は消えます。";
                 step = 2;
+            } else if (step === 2) {
+                label.text = "にゃんこはプログラムに従って動くので、対戦が始まったら、あなたは見ているだけです。\n\n勝てない時は、プログラムを改良してみてください。\n\nでは対戦スタート！";
+                tmp1 = Label({text:"プログラムを\n開くボタン", fill:"white", fontSize: 30}).addChildTo(this).setPosition(500, 760);
+                tmp2 = Sprite("howToArrow").addChildTo(this).setPosition(350, 840);
+                step = 3;
             } else {
                 if (param && param.callback) {
                     setTimeout(function() {
@@ -2683,15 +2737,15 @@ phina.define('Block', {
             }
             // 障害物確認
             if (self.name === BLOCK_NAME.stop) {
-                return !target.bumpWall(target.direction);
+                return !target.bumpSomething(target.direction);
             }
             // 障害物確認（右斜め前）
             if (self.name === BLOCK_NAME.stopRight) {
-                return !target.bumpWall(target.direction, "right");
+                return !target.bumpSomething(target.direction, "right");
             }
             // 障害物確認（左斜め前）
             if (self.name === BLOCK_NAME.stopLeft) {
-                return !target.bumpWall(target.direction, "left");
+                return !target.bumpSomething(target.direction, "left");
             }
             // 50%の確率
             if (self.name === BLOCK_NAME.random1) {
@@ -3290,7 +3344,7 @@ phina.main(function() {
 
 });
 
-window.onerror = function(message) {
-    alert("予期しないエラー：" + message);
-    return true;
-};
+// window.onerror = function(message) {
+//     alert("予期しないエラー：" + message);
+//     return true;
+// };
