@@ -137,7 +137,7 @@ phina.define('TitleScene', {
         Sprite("title").addChildTo(this).setPosition(this.gridX.center(-0.2), this.gridY.center(-2.9));
 
         Label({
-            text: "タップして開始",
+            text: "TAP TO START",
             fill: "black",
             fontWeight: 800,
             fontSize: 27,
@@ -146,20 +146,27 @@ phina.define('TitleScene', {
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.span(12));
 
         this.on("pointstart", function() {
+            if (stop) {
+                stop = false;
+                return;
+            }
             self.exit("EnemySelectScene");
         });
+
+        let stop = false;
 
         // BasicButton({
         //     width: 300,
         //     height: 60,
         //     text: "初期化（開発用）",
         // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
-        // .on("pointstart", function() {
+        // .on("pointstart", function(e) {
         //     myLevel = 1;
         //     localStorage.removeItem("level");
         //     localStorage.removeItem("work");
         //     localStorage.removeItem("workEnemy");
         //     alert("倉庫以外を初期状態に戻しました。");
+        //     stop = true;
         // });
 
         const query = new URLSearchParams(window.location.search);
@@ -419,11 +426,8 @@ phina.define('EnemySelectScene', {
         } else {
             enemy3_2Button.setInteractive(true);
             enemy3_2Button.on("pointstart", function() {
-                // TODO
-                alert("まだプログラムが準備できていません。");
-                return;
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("");
+                enemyProgram.import("3vr9j2zCWxgt5R26bEZGYsEI2BSS2UVFsJ6VMyjelsOsZWi6EInHS5ayGXwhMvnLluAGC9eZKFHLhRXBV4GqNNb9kDOFV2ZRwttNAmLcNxk8kcUeM1RJZwTYoyHIRlxgDmfYCTx7HbLMwGcdjG5U-RQ4PDAqGLjLqf9FEmLgbMcaHGboLAsLgE");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 8});
             });
         }
@@ -1109,7 +1113,10 @@ phina.define('BattleScene', {
 
         self.whiteAreaNumLabel = Label({fontSize:30,fontWeight:800, text: "0", fill: "black"}).addChildTo(this).setPosition(self.gridX.span(1.3), self.gridY.span(15));
         self.blackAreaNumLabel = Label({fontSize:30,fontWeight:800, text: "0", fill: "white"}).addChildTo(this).setPosition(self.gridX.span(3.3), self.gridY.span(15));
- 
+
+        // タップイベントの伝播をキャンセル
+        let cancelEvent = false;
+
         // プログラミングボタン
         const playerEditButton = BasicButton({
             text: "プログラミング",
@@ -1119,6 +1126,7 @@ phina.define('BattleScene', {
         }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.span(15));
         playerEditButton.setInteractive(true);
         playerEditButton.on("pointstart", function() {
+            cancelEvent = true;
             App.pushScene(ProgramingScene({targetProgram: playerProgram, trainingMode: self.trainingMode, enemyLevel: param.enemyLevel, battleScene: self}));
         });
 
@@ -1132,8 +1140,12 @@ phina.define('BattleScene', {
         // stepButton.on("pointstart", function() {
         //     App.pushScene(BattleMenuScene({battleScene: self}));
         // });
-        fieldPanel.setInteractive(true);
-        fieldPanel.on("pointstart", function() {
+        this.setInteractive(true);
+        this.on("pointstart", function() {
+            if (cancelEvent) {
+                cancelEvent = false;
+                return;
+            }
             App.pushScene(BattleMenuScene({battleScene: self}));
         });
 
@@ -1503,7 +1515,7 @@ phina.define('BattleMenuScene', {
         // 敵のプログラムを表示
         const saveButton = BasicButton({
             text: "敵のプログラムを見る",
-            width: 350,
+            width: 320,
             height: 50,
             primary: true,
         }).addChildTo(self)
@@ -1518,7 +1530,7 @@ phina.define('BattleMenuScene', {
         // 最初からやり直すボタン
         const clearButton = BasicButton({
             text: "最初からやり直す",
-            width: 350,
+            width: 320,
             height: 50,
             primary: true,
         }).addChildTo(self)
@@ -1529,8 +1541,8 @@ phina.define('BattleMenuScene', {
         });
 
         const gotoTitleButton = BasicButton({
-            text: "対戦相手を選ぶ",
-            width: 350,
+            text: "対戦を終了する",
+            width: 320,
             height: 50,
             primary: true,
         }).addChildTo(self)
@@ -1961,43 +1973,54 @@ phina.define('LoadURLScene', {
             x: this.gridX.center(),
             y: this.gridY.center(),
             width: this.width - 100,
-            height: this.height - 550,
+            height: this.height - 400,
             fill: "white",
             stroke: "black",
             strokeWidth: 10,
             cornerRadius: 10,
-        }).addChildTo(this);
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-0.5));
 
         const label = Label({
             fontSize: 25,
             fill: "black",
             fontWeight: 800,
-        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(6));
+        }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.span(4));
         label.text = "URLにプログラムが含まれています。";
 
         const okButton = BasicButton({
             text: "自分のプログラムとして読み込む",
             width: 450,
-            height: 100,
+            height: 80,
         }).addChildTo(self)
-        .setPosition(self.gridX.center(), self.gridY.span(8))
+        .setPosition(self.gridX.center(), self.gridY.span(6))
         .on("pointstart", function() {
             if (!playerProgram) {
                 playerProgram = new Program("player");
             }
             playerProgram.import(param.data);
-            App.pushScene(MessageDialogScene({message: "読み込みました。", callback: () => self.exit()}));
+            App.pushScene(MessageDialogScene({message: "自分のプログラムとして読み込みました。", callback: () => {removeQuery();self.exit()}}));
         });
 
         const ok2Button = BasicButton({
             text: "敵のプログラムとして読み込む",
             width: 450,
-            height: 100,
+            height: 80,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(), self.gridY.span(8))
+        .on("pointstart", function() {
+            window.localStorage.setItem("workEnemy", param.data);
+            App.pushScene(MessageDialogScene({message: "読み込みました。\n対戦相手「フリー」を選択してください。", callback: () => {removeQuery();self.exit()}}));
+        });
+
+        const ok3Button = BasicButton({
+            text: "無視する",
+            width: 450,
+            height: 80,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(10))
         .on("pointstart", function() {
-            window.localStorage.setItem("workEnemy", param.data);
-            App.pushScene(MessageDialogScene({message: "読み込みました。\n対戦相手「フリー」を選択してください。", callback: () => self.exit()}));
+            removeQuery();
+            self.exit();
         });
 
         // // いいえボタン
@@ -2012,8 +2035,10 @@ phina.define('LoadURLScene', {
         // });
 
         // クエリパラメータはもう不要
-        const url = new URL(window.location.href);
-        history.replaceState(null, '', url.pathname);
+        function removeQuery() {
+            const url = new URL(window.location.href);
+            history.replaceState(null, '', url.pathname);
+        }
 
 
     },
@@ -3265,3 +3290,7 @@ phina.main(function() {
 
 });
 
+window.onerror = function(message) {
+    alert("予期しないエラー：" + message);
+    return true;
+};
