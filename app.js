@@ -597,54 +597,10 @@ phina.define('BlockSelectScene', {
 
         showArrow();
 
-        const sampleGroup = DisplayElement().addChildTo(this);
-
-        // const selectMark = RectangleShape({
-        //     width: 75,
-        //     height: 75,
-        //     fill: "transparent",
-        //     stroke: "red",
-        //     strokeWidth: 5,
-        //     cornerRadius: 3,
-        // }).addChildTo(this);
-
-        let selectMark;
-
-        function moveSelectMark() {
-            const block = sampleGroup.children.find(b => {
-                return b.name === selectedBlock.name;
-            });
-            // selectMark.setPosition(block.x, block.y);
-            if (selectMark) {
-                selectMark.remove();
-            }
-            selectMark = RectangleShape({
-                width: 75,
-                height: 75,
-                fill: "transparent",
-                stroke: "red",
-                strokeWidth: 5,
-                cornerRadius: 3,
-            }).addChildTo(self).setPosition(block.x, block.y);
-        }
-
-        function markFirstSelectedBlock() {
-            const block = sampleGroup.children.find(b => {
-                return b.name === selectedBlock.name;
-            });
-            RectangleShape({
-                width: 75,
-                height: 75,
-                fill: "transparent",
-                stroke: "lightgray",
-                strokeWidth: 5,
-                cornerRadius: 3,
-            }).addChildTo(self).setPosition(block.x, block.y);
-        }
-
         // ブロックを並べる
-        function addSampleBlock(name, x, y) {
-            const block = Block({name: name, sampleMode: true, hideArrows: true}).addChildTo(self);
+        function addSampleBlock(panel, name, x, y) {
+            const block = Block({name: name, sampleMode: true, hideArrows: true});
+            block.addChildTo(panel);
             block.setPosition(x, y);
             block.on("pointstart", () => {
                 selectedBlock.changeBlock(block.name, true, arrowOK, arrowNG);
@@ -652,48 +608,124 @@ phina.define('BlockSelectScene', {
                 titleLabel.text = block.title;
                 turnLabel.text = "消費ターン数：" + block.turn;
                 showArrow();
-                moveSelectMark();
             });
-            block.addChildTo(sampleGroup);
         }
 
-        // 特殊もの
-        addSampleBlock(BLOCK_NAME.empty, this.gridX.span(3), this.gridY.span(5.5));
-        addSampleBlock(BLOCK_NAME.non, this.gridX.span(5), this.gridY.span(5.5));
-        addSampleBlock(BLOCK_NAME.gotoSub, this.gridX.span(7), this.gridY.span(5.5));
+        const blockPanel1 = RectangleShape({
+            width: this.width - 120,
+            height: 550,
+            x: this.gridX.center(),
+            y: this.gridY.center(1),
+            fill: "white",
+            cornerRadius: 10,
+        }).addChildTo(this);
+        Label({
+            text: "基本チップ",
+            fontSize: 35,
+            fontWeight: 800,
+        }).addChildTo(blockPanel1).setPosition(0, -240);
 
-        // アクション系
-        addSampleBlock(BLOCK_NAME.forward, this.gridX.span(3), this.gridY.span(7.5));
-        addSampleBlock(BLOCK_NAME.goRight, this.gridX.span(5), this.gridY.span(7.5));
-        addSampleBlock(BLOCK_NAME.goLeft, this.gridX.span(7), this.gridY.span(7.5));
-        addSampleBlock(BLOCK_NAME.goBack, this.gridX.span(9), this.gridY.span(7.5));
-        addSampleBlock(BLOCK_NAME.turnRight, this.gridX.span(11), this.gridY.span(7.5));
-        addSampleBlock(BLOCK_NAME.turnLeft, this.gridX.span(13), this.gridY.span(7.5));
+        BasicButton({
+            width: 200,
+            height: 50,
+            text: "応用チップ >",
+        }).addChildTo(blockPanel1).setPosition(120, 220)
+        .on("pointstart", function() {
+            blockPanel1.tweener.to({x: self.gridX.center(-15)}, 200).play();
+            blockPanel2.tweener.to({x: self.gridX.center()}, 200).play();
+        });
 
-        addSampleBlock(BLOCK_NAME.putStone, this.gridX.span(3), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagAon, this.gridX.span(5), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagAoff, this.gridX.span(7), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagBon, this.gridX.span(9), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.flagBoff, this.gridX.span(11), this.gridY.span(9));
-        addSampleBlock(BLOCK_NAME.turnToEnemy, this.gridX.span(13), this.gridY.span(9));
+        BasicButton({
+            width: 200,
+            height: 50,
+            text: "< 便利チップ",
+        }).addChildTo(blockPanel1).setPosition(-120, 220)
+        .on("pointstart", function() {
+            blockPanel1.tweener.to({x: self.gridX.center(15)}, 200).play();
+            blockPanel3.tweener.to({x: self.gridX.center()}, 200).play();
+        });
 
-        // 判定系
-        addSampleBlock(BLOCK_NAME.stop, this.gridX.span(3), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.stopRight, this.gridX.span(5), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.stopLeft, this.gridX.span(7), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.random1, this.gridX.span(9), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.myArea, this.gridX.span(11), this.gridY.span(11));
-        addSampleBlock(BLOCK_NAME.enemyArea, this.gridX.span(13), this.gridY.span(11));
+        addSampleBlock(blockPanel1, BLOCK_NAME.empty, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.non, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.forward, (64 + 30) * (0), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.goRight, (64 + 30) * (1), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.goLeft, (64 + 30) * (2), (64 + 30) * (-2) + 25);
 
-        addSampleBlock(BLOCK_NAME.flagACheck, this.gridX.span(3), this.gridY.span(12.5));
-        addSampleBlock(BLOCK_NAME.flagBCheck, this.gridX.span(5), this.gridY.span(12.5));
-        addSampleBlock(BLOCK_NAME.enemy, this.gridX.span(7), this.gridY.span(12.5));
-        addSampleBlock(BLOCK_NAME.enemyDistance, this.gridX.span(9), this.gridY.span(12.5));
-        addSampleBlock(BLOCK_NAME.checkStone, this.gridX.span(11), this.gridY.span(12.5));
-        addSampleBlock(BLOCK_NAME.watch, this.gridX.span(13), this.gridY.span(12.5));
+        addSampleBlock(blockPanel1, BLOCK_NAME.goBack, (64 + 30) * (-2), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.turnRight, (64 + 30) * (-1), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.turnLeft, (64 + 30) * (0), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.putStone, (64 + 30) * (1), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.stop, (64 + 30) * (2), (64 + 30) * (-1) + 25);
 
-        markFirstSelectedBlock();
-        moveSelectMark();
+        addSampleBlock(blockPanel1, BLOCK_NAME.stopRight, (64 + 30) * (-2), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.stopLeft, (64 + 30) * (-1), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.checkStone, (64 + 30) * (0), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.random1, (64 + 30) * (1), (64 + 30) * (0) + 25);
+
+        const blockPanel2 = RectangleShape({
+            width: this.width - 120,
+            height: 550,
+            x: this.gridX.center(15),
+            y: this.gridY.center(1),
+            fill: "white",
+            cornerRadius: 10,
+        }).addChildTo(this);
+        Label({
+            text: "応用チップ",
+            fontSize: 35,
+            fontWeight: 800,
+        }).addChildTo(blockPanel2).setPosition(0, -240);
+
+        BasicButton({
+            width: 200,
+            height: 50,
+            text: "< 基本チップ",
+        }).addChildTo(blockPanel2).setPosition(-120, 220)
+        .on("pointstart", function() {
+            blockPanel2.tweener.to({x: self.gridX.center(15)}, 200).play();
+            blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
+        });
+
+        addSampleBlock(blockPanel2, BLOCK_NAME.gotoSub, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagAon, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagAoff, (64 + 30) * (0), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBon, (64 + 30) * (1), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBoff, (64 + 30) * (2), (64 + 30) * (-2) + 25);
+
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagACheck, (64 + 30) * (-2), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBCheck, (64 + 30) * (-1), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.myArea, (64 + 30) * (0), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyArea, (64 + 30) * (1), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemy, (64 + 30) * (2), (64 + 30) * (-1) + 25);
+
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyDistance, (64 + 30) * (-2), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.watch, (64 + 30) * (-1), (64 + 30) * (0) + 25);
+
+        const blockPanel3 = RectangleShape({
+            width: this.width - 120,
+            height: 550,
+            x: this.gridX.center(-15),
+            y: this.gridY.center(1),
+            fill: "white",
+            cornerRadius: 10,
+        }).addChildTo(this);
+        Label({
+            text: "便利チップ",
+            fontSize: 35,
+            fontWeight: 800,
+        }).addChildTo(blockPanel3).setPosition(0, -240);
+
+        BasicButton({
+            width: 200,
+            height: 50,
+            text: "基本チップ >",
+        }).addChildTo(blockPanel3).setPosition(120, 220)
+        .on("pointstart", function() {
+            blockPanel3.tweener.to({x: self.gridX.center(-15)}, 200).play();
+            blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
+        });
+
+        addSampleBlock(blockPanel3, BLOCK_NAME.turnToEnemy, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
 
         const submitButton = BasicButton({
             text: "決定",
