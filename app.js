@@ -46,6 +46,9 @@ ASSETS = {
         "startSub": "img/blocks/startSub.png",
         "gotoSub": "img/blocks/gotoSub.png",
         "enemyArea": "img/blocks/enemyArea.png",
+        "enemyStone": "img/blocks/enemyStone.png",
+        "turnToGo": "img/blocks/turnToGo.png",
+
         "checked": "img/blocks/checked.png",
 
         "player": "img/player.png",
@@ -99,6 +102,8 @@ const BLOCK_NAME = {
     startSub: "a",
     gotoSub: "b",
     enemyArea: "c",
+    enemyStone: "d",
+    turnToGo: "e",
 };
 
 
@@ -700,6 +705,7 @@ phina.define('BlockSelectScene', {
 
         addSampleBlock(blockPanel2, BLOCK_NAME.enemyDistance, (64 + 30) * (-2), (64 + 30) * (0) + 25);
         addSampleBlock(blockPanel2, BLOCK_NAME.watch, (64 + 30) * (-1), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyStone, (64 + 30) * (0), (64 + 30) * (0) + 25);
 
         const blockPanel3 = RectangleShape({
             width: this.width - 120,
@@ -726,6 +732,7 @@ phina.define('BlockSelectScene', {
         });
 
         addSampleBlock(blockPanel3, BLOCK_NAME.turnToEnemy, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel3, BLOCK_NAME.turnToGo, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
 
         const submitButton = BasicButton({
             text: "決定",
@@ -3031,6 +3038,20 @@ phina.define('Block', {
                 }
                 return false;
             }
+            // 目の前が敵石か
+            if (self.name === BLOCK_NAME.enemyStone) {
+                const fieldName = target.getForwardFieldName(target.direction);
+                if (target.playerOrEnemy === "player") {
+                    if (fieldName === "blackStone") {
+                        return true;
+                    }
+                } else {
+                    if (fieldName === "whiteStone") {
+                        return true;
+                    }
+                }
+                return false;
+            }
             // 残り時間が半分以下
             if (self.name === BLOCK_NAME.watch) {
                 return (countdown / countdownMax) < 0.5;
@@ -3113,6 +3134,30 @@ phina.define('Block', {
                 if (target.ny - (nonTarget.nx - target.nx) <= nonTarget.ny && nonTarget.ny <= target.ny + (nonTarget.nx - target.nx)) {
                     target.setDirection("east");
                     return true;
+                }
+                return true;
+            }
+            // 進める方向を向く
+            if (self.name === BLOCK_NAME.turnToGo) {
+                if (!nonTarget) {
+                    return true;
+                }
+                let directions = [];
+                if (target.direction === "north") {
+                    directions = ["north", "east", "south", "west"];
+                } else if (target.direction === "east") {
+                    directions = ["east", "south", "west", "north"];
+                } else if (target.direction === "south") {
+                    directions = ["south", "west", "north", "east"];
+                } else if (target.direction === "west") {
+                    directions = ["west", "north", "east", "south"];
+                }
+                for (let i = 0; i < 4; i++) {
+                    const d = directions[i];
+                    if (!target.bumpSomething(d)) {
+                        target.setDirection(d);
+                        return true;
+                    }
                 }
                 return true;
             }
@@ -3346,6 +3391,18 @@ phina.define('Block', {
                 self.title = "サブルーチン";
                 self.setImage("gotoSub");
                 self.description = "サブルーチンを実行する。サブルーチンが終わると、ここにまた戻る。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.enemyStone) {
+                self.title = "敵石判定";
+                self.setImage("enemyStone");
+                self.description = "１マス先が敵のおじゃま石かどうかを判定する。敵のおじゃま石なら青矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.turnToGo) {
+                self.title = "前進旋回";
+                self.setImage("turnToGo");
+                self.description = "前進できる方向に向く。前方→右→後ろ→左の順に探す。";
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
