@@ -46,6 +46,7 @@ ASSETS = {
         "startSub": "img/blocks/startSub.png",
         "gotoSub": "img/blocks/gotoSub.png",
         "enemyArea": "img/blocks/enemyArea.png",
+        "checked": "img/blocks/checked.png",
 
         "player": "img/player.png",
         "enemy1": "img/enemy1.png",
@@ -839,8 +840,7 @@ phina.define("Cat", {
 
             // 石を置く
             createArea(self.nx, self.ny);
-            const stone = Sprite(color + "Stone").addChildTo(param.field)
-                .setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+            putStoneAnimation(color);
             battleField[self.ny][self.nx].name = color + "Stone";
 
             addArea(self.nx, self.ny);
@@ -858,7 +858,39 @@ phina.define("Cat", {
                 addArea(self.nx + 1, self.ny);
             }
 
+            if (self.nx - 1 > 0 && self.ny - 1 > 0) {
+                addArea(self.nx - 1, self.ny - 1);
+            }
+            if (self.nx - 1 > 0 && self.ny + 1 < 12) {
+                addArea(self.nx - 1, self.ny + 1);
+            }
+            if (self.nx + 1 < 9 && self.ny - 1 > 0) {
+                addArea(self.nx + 1, self.ny - 1);
+            }
+            if (self.nx + 1 < 9 && self.ny + 1 < 12) {
+                addArea(self.nx + 1, self.ny + 1);
+            }
+ 
         };
+
+        // 石を置いたときのアニメーション
+        function putStoneAnimation(color) {
+            const stone = Sprite(color + "Stone").addChildTo(param.field)
+                .setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny) - 50);
+            stone.tweener
+                .to({y: param.field.gridY.span(self.ny)}, 100)
+                .rotateTo(-20, 50)
+                .rotateTo(40, 100)
+                .rotateTo(-40, 100)
+                .rotateTo(40, 100)
+                .rotateTo(-40, 100)
+                .rotateTo(20, 50)
+                .rotateTo(-20, 50)
+                .rotateTo(20, 50)
+                .rotateTo(-20, 50)
+                .rotateTo(0, 50)
+                .play();
+        }
 
         // 目の前のフィールドのname
         self.getForwardFieldName = function(direction) {
@@ -957,6 +989,7 @@ phina.define("Cat", {
                 if (battleField[y][x].level === 0) {
                     // 相殺
                     battleField[y][x].remove();
+                    battleField[y][x] = null;
                 } else {
                     battleField[y][x].level -= 1;
                     battleField[y][x].alpha = 0.6 + battleField[y][x].level * 0.2;
@@ -1232,6 +1265,13 @@ phina.define('BattleScene', {
             const done = [];
             let cnt = 0;
 
+            // 前回実行したブロックが2ターン必要な場合、skipフラグが立っている
+            const block = program.getActiveBlock();
+            if (block.skip) {
+                block.skip = false;
+                return;
+            }
+
             applyOneStepRecursive(program, target, nonTarget);
 
             function applyOneStepRecursive(program, target, nonTarget) {
@@ -1275,6 +1315,11 @@ phina.define('BattleScene', {
                     }
                     done.push(block);
                     applyOneStepRecursive(program, target, nonTarget);
+                }
+
+                if (block.turn === 2) {
+                    const nextBlock = program.getActiveBlock();
+                    nextBlock.skip = true;
                 }
             }
         };
@@ -1742,6 +1787,107 @@ phina.define('ProgramingMenuScene', {
             self.exit();
         });
 
+    },
+});
+
+// 複数ブロック選択シーン
+phina.define('BlockMultiSelectScene', {
+    superClass: 'DisplayScene',
+    init: function(param) {
+  
+        const self = this;
+
+        this.superInit();
+
+        this.backgroundColor = "transparent";
+
+        const blocksPanel = RectangleShape({
+            width: 64 * 9,
+            height: 64 * 13,
+            x: self.gridX.center(),
+            y: self.gridY.center(-0.5),
+            fill: "transparent",
+            stroke: 0,
+        }).addChildTo(this);
+
+        blocksPanel.gridX = Grid({
+            width: blocksPanel.width,
+            columns: 9,
+            offset: blocksPanel.width / 2 * -1 + 32,
+        });
+        blocksPanel.gridY = Grid({
+            width: blocksPanel.height,
+            columns: 13,
+            offset: blocksPanel.height / 2 * -1 + 32,
+        });
+
+        const controlPanel = RectangleShape({
+            width: this.width,
+            height: 100,
+            x: self.gridX.center(),
+            y: self.gridY.center(7.3),
+            fill: "gray",
+            stroke: 0,
+        }).addChildTo(this);
+
+        const removeButton = BasicButton({
+            text: "選択したチップを削除",
+            width: 300,
+            height: 50,
+            primary:true,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(-3), self.gridY.span(15.2))
+        .on("pointstart", function() {
+            blocks.forEach(function(block) {
+                if (block.name === "on") {
+                    param.targetProgram.blocks[block.ny][block.nx].changeBlock(BLOCK_NAME.empty, false, "down", "right");
+                }
+            });
+            self.exit();
+        });
+
+        const closeButton = BasicButton({
+            text: "キャンセル",
+            width: 160,
+            height: 50,
+        }).addChildTo(self)
+        .setPosition(self.gridX.center(4.5), self.gridY.span(15.2))
+        .on("pointstart", function() {
+            self.exit();
+        });
+
+        const blocks = [];
+
+        // ブロックを並べる
+        for (let x = 0; x < blocksPanel.gridX.columns; x++) {
+            for (let y = 0; y < blocksPanel.gridY.columns; y++) {
+                const block = param.targetProgram.blocks[y][x];
+                if (block.name !== BLOCK_NAME.empty && block.name !== BLOCK_NAME.start && block.name !== BLOCK_NAME.startSub) {
+                    const selectMark = Sprite("checked");
+                    selectMark.addChildTo(blocksPanel).setPosition(blocksPanel.gridX.span(x), blocksPanel.gridY.span(y));
+                    selectMark.name = "off";
+                    selectMark.alpha = 0;
+                    selectMark.nx = x;
+                    selectMark.ny = y;
+                    selectMark.setInteractive(true);
+                    selectMark.on("pointstart", function() {
+                        if (this.name === "on") {
+                            this.name = "off";
+                            this.alpha = 0;
+                        } else {
+                            this.name = "on";
+                            this.alpha = 1;
+                        }
+                    });
+                    if (x === param.x && y === param.y) {
+                        selectMark.alpha = 1;
+                        selectMark.name = "on";
+                    }
+                    blocks.push(selectMark);
+                }
+
+            }
+        }
     },
 });
 
@@ -2665,8 +2811,56 @@ phina.define('Block', {
 
         this.setInteractive(true);
 
+        let pointStartTime;
+
         this.on("pointstart", function() {
-            // if (self.sampleMode || params.playerOrEnemy === "enemy") {
+            pointStartTime = (new Date()).getTime();
+        });
+
+        this.on("pointstay", function() {
+
+            if (self.name === BLOCK_NAME.empty) {
+                return;
+            }
+
+            // console.log((new Date()).getTime(), pointStartTime, (new Date()).getTime() - pointStartTime);
+            if (!pointStartTime) {
+                return;
+            }
+            if ((new Date()).getTime() - pointStartTime < 200) {
+                return;
+            }
+            pointStartTime = null;
+
+            const program = params.playerOrEnemy === "player" ? playerProgram : enemyProgram;
+
+            // 自分がプログラム中のどの位置なのか逆探索
+            function getMyPosition() {
+                for (let x = 0; x < 9; x++) {
+                    for (let y = 0; y < 13; y++) {
+                        if (program.blocks[y][x] === self) {
+                            return {x: x, y: y};
+                        }
+                    }
+                }
+            }
+
+            const position = getMyPosition();
+
+            App.pushScene(BlockMultiSelectScene({
+                targetProgram: program,
+                x: position.x,
+                y: position. y
+            }));
+        })
+
+        this.on("pointend", function() {
+
+            // 0.2秒以内に指を離したなら、タップしたと判定
+            if ((new Date()).getTime() - pointStartTime > 200) {
+                return;
+            }
+
             if (self.sampleMode) {
                 return;
             }
@@ -2989,7 +3183,7 @@ phina.define('Block', {
                 self.setImage("putStone");
                 self.description = "足元に「おじゃま石」を置く。";
                 self.doubleArrow = false;
-                self.turn = 1;
+                self.turn = 2;
             } else if (name === BLOCK_NAME.non) {
                 self.title = "コネクタ";
                 self.setImage("non");
