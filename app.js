@@ -2,11 +2,18 @@ phina.globalize();
 
 const version = "1.0";
 
-const BATTLE_TIME = 200;
+const BATTLE_TIME = 150;
 let countdownMax = BATTLE_TIME;
 let countdown = BATTLE_TIME;
 
 let myLevel = 1;
+
+const STORAGE_KEY = {
+    LEVEL: "jintori-level",
+    DATA: "jintori-data",
+    ENEMY_WORK: "jintori-enemy-work",
+    WORK: "jintori-work",
+};
 
 ASSETS = {
     image: {
@@ -46,8 +53,12 @@ ASSETS = {
         "startSub": "img/blocks/startSub.png",
         "gotoSub": "img/blocks/gotoSub.png",
         "enemyArea": "img/blocks/enemyArea.png",
+        "stone": "img/blocks/stone.png",
         "enemyStone": "img/blocks/enemyStone.png",
         "turnToGo": "img/blocks/turnToGo.png",
+        "checkFlower": "img/blocks/checkFlower.png",
+        "forwardFlower": "img/blocks/flower.png",
+        "away": "img/blocks/away.png",
 
         "checked": "img/blocks/checked.png",
 
@@ -57,6 +68,7 @@ ASSETS = {
         "enemy3": "img/enemy3.png",
         "enemy4": "img/enemy4.png",
         "green": "img/green.png",
+        "flower": "img/flower.png",
         "wall": "img/wall.png",
         "white": "img/white.png",
         "black": "img/black.png",
@@ -104,6 +116,9 @@ const BLOCK_NAME = {
     enemyArea: "c",
     enemyStone: "d",
     turnToGo: "e",
+    checkFlower: "f",
+    forwardFlower: "g",
+    away: "h",
 };
 
 
@@ -168,9 +183,9 @@ phina.define('TitleScene', {
         }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(6.5))
         .on("pointstart", function(e) {
             myLevel = 1;
-            localStorage.removeItem("level");
-            localStorage.removeItem("work");
-            localStorage.removeItem("workEnemy");
+            localStorage.removeItem(STORAGE_KEY.LEVEL);
+            localStorage.removeItem(STORAGE_KEY.WORK);
+            localStorage.removeItem(STORAGE_KEY.ENEMY_WORK);
             playerProgram = Program("player", false);
             alert("倉庫以外を初期状態に戻しました。");
             stop = true;
@@ -199,7 +214,7 @@ phina.define('EnemySelectScene', {
 
         this.backgroundColor = "pink";
 
-        let level = localStorage.getItem("level");
+        let level = localStorage.getItem(STORAGE_KEY.LEVEL);
         if (level) {
             myLevel = Number(level);
         }
@@ -260,7 +275,7 @@ phina.define('EnemySelectScene', {
             enemy1_2Button.setInteractive(true);
             enemy1_2Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cCOGJeCUvnIzvTNdUQOClD8da-AqvTzSd2GAcGJGBZ0qa5");
+                enemyProgram.import("0yvK5hN4cCOGJeCUvnIzvTNdUQOClGeGSvwVXp5pM7DgODUjAs6VNc");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 2});
             });
         }
@@ -289,7 +304,7 @@ phina.define('EnemySelectScene', {
             enemy1_3Button.setInteractive(true);
             enemy1_3Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("0yvK5hN4cCOGJeCXhi9v2Wa6g5KykIeyOMdQAakYzAFe82suYNaTsWV2EZnMD1mXAdAhZthkueWPnYxioWOKlEziWGSgFnpNCYk");
+                enemyProgram.import("0yvK5hN4cCOGJeCXhs8P2Wa6g5KykIeyOMdQAakYzAFe82suYNaTsWV2EZnMD1mXAdAhZthkueWPnYxioWOKlEziWGSgFnpNCYk");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 3});
             });
         }
@@ -318,7 +333,7 @@ phina.define('EnemySelectScene', {
             enemy2_1Button.setInteractive(true);
             enemy2_1Button.on("pointstart", function() {
                 enemyProgram = new Program("enemy", false);
-                enemyProgram.import("");
+                enemyProgram.import("0yvK5hN4cCOFEQP1sIHQ7j8C0hKQRAl4NzlT9wKIjitga9sPZtRj5L9iNPqgE3ZoZ3UTl2CJxDBAW_YYCxIb3ziAgC1EfsmNyATH_YS");
                 self.exit("BattleScene", {trainingMode: false, enemyLevel: 4});
             });
         }
@@ -628,13 +643,13 @@ phina.define('BlockSelectScene', {
             text: "基本チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel1).setPosition(0, -240);
+        }).addChildTo(blockPanel1).setPosition(0, -170);
 
         BasicButton({
             width: 200,
             height: 50,
             text: "応用チップ >",
-        }).addChildTo(blockPanel1).setPosition(120, 220)
+        }).addChildTo(blockPanel1).setPosition(150, -240)
         .on("pointstart", function() {
             blockPanel1.tweener.to({x: self.gridX.center(-15)}, 200).play();
             blockPanel2.tweener.to({x: self.gridX.center()}, 200).play();
@@ -644,28 +659,28 @@ phina.define('BlockSelectScene', {
             width: 200,
             height: 50,
             text: "< 便利チップ",
-        }).addChildTo(blockPanel1).setPosition(-120, 220)
+        }).addChildTo(blockPanel1).setPosition(-150, -240)
         .on("pointstart", function() {
             blockPanel1.tweener.to({x: self.gridX.center(15)}, 200).play();
             blockPanel3.tweener.to({x: self.gridX.center()}, 200).play();
         });
 
-        addSampleBlock(blockPanel1, BLOCK_NAME.empty, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.non, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.forward, (64 + 30) * (0), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.goRight, (64 + 30) * (1), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.goLeft, (64 + 30) * (2), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.empty, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.non, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.forward, (64 + 30) * (0), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.goRight, (64 + 30) * (1), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.goLeft, (64 + 30) * (2), (64 + 30) * (-2) + 100);
 
-        addSampleBlock(blockPanel1, BLOCK_NAME.goBack, (64 + 30) * (-2), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.turnRight, (64 + 30) * (-1), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.turnLeft, (64 + 30) * (0), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.putStone, (64 + 30) * (1), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.stop, (64 + 30) * (2), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.goBack, (64 + 30) * (-2), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.turnRight, (64 + 30) * (-1), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.turnLeft, (64 + 30) * (0), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.putStone, (64 + 30) * (1), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.stop, (64 + 30) * (2), (64 + 30) * (-1) + 100);
 
-        addSampleBlock(blockPanel1, BLOCK_NAME.stopRight, (64 + 30) * (-2), (64 + 30) * (0) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.stopLeft, (64 + 30) * (-1), (64 + 30) * (0) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.checkStone, (64 + 30) * (0), (64 + 30) * (0) + 25);
-        addSampleBlock(blockPanel1, BLOCK_NAME.random1, (64 + 30) * (1), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel1, BLOCK_NAME.stopRight, (64 + 30) * (-2), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.stopLeft, (64 + 30) * (-1), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.checkStone, (64 + 30) * (0), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel1, BLOCK_NAME.random1, (64 + 30) * (1), (64 + 30) * (0) + 100);
 
         const blockPanel2 = RectangleShape({
             width: this.width - 120,
@@ -679,33 +694,37 @@ phina.define('BlockSelectScene', {
             text: "応用チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel2).setPosition(0, -240);
+        }).addChildTo(blockPanel2).setPosition(0, -170);
 
         BasicButton({
             width: 200,
             height: 50,
             text: "< 基本チップ",
-        }).addChildTo(blockPanel2).setPosition(-120, 220)
+        }).addChildTo(blockPanel2).setPosition(-150, -240)
         .on("pointstart", function() {
             blockPanel2.tweener.to({x: self.gridX.center(15)}, 200).play();
             blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
         });
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.gotoSub, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagAon, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagAoff, (64 + 30) * (0), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBon, (64 + 30) * (1), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBoff, (64 + 30) * (2), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.gotoSub, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagAon, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagAoff, (64 + 30) * (0), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBon, (64 + 30) * (1), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBoff, (64 + 30) * (2), (64 + 30) * (-2) + 100);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagACheck, (64 + 30) * (-2), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBCheck, (64 + 30) * (-1), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.myArea, (64 + 30) * (0), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyArea, (64 + 30) * (1), (64 + 30) * (-1) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemy, (64 + 30) * (2), (64 + 30) * (-1) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagACheck, (64 + 30) * (-2), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.flagBCheck, (64 + 30) * (-1), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.myArea, (64 + 30) * (0), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyArea, (64 + 30) * (1), (64 + 30) * (-1) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemy, (64 + 30) * (2), (64 + 30) * (-1) + 100);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyDistance, (64 + 30) * (-2), (64 + 30) * (0) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.watch, (64 + 30) * (-1), (64 + 30) * (0) + 25);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyStone, (64 + 30) * (0), (64 + 30) * (0) + 25);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyDistance, (64 + 30) * (-2), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.watch, (64 + 30) * (-1), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.enemyStone, (64 + 30) * (0), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.stone, (64 + 30) * (1), (64 + 30) * (0) + 100);
+        addSampleBlock(blockPanel2, BLOCK_NAME.checkFlower, (64 + 30) * (2), (64 + 30) * (0) + 100);
+
+        addSampleBlock(blockPanel2, BLOCK_NAME.forwardFlower, (64 + 30) * (-2), (64 + 30) * (1) + 100);
 
         const blockPanel3 = RectangleShape({
             width: this.width - 120,
@@ -719,20 +738,21 @@ phina.define('BlockSelectScene', {
             text: "便利チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel3).setPosition(0, -240);
+        }).addChildTo(blockPanel3).setPosition(0, -170);
 
         BasicButton({
             width: 200,
             height: 50,
             text: "基本チップ >",
-        }).addChildTo(blockPanel3).setPosition(120, 220)
+        }).addChildTo(blockPanel3).setPosition(150, -240)
         .on("pointstart", function() {
             blockPanel3.tweener.to({x: self.gridX.center(-15)}, 200).play();
             blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
         });
 
-        addSampleBlock(blockPanel3, BLOCK_NAME.turnToEnemy, (64 + 30) * (-2), (64 + 30) * (-2) + 25);
-        addSampleBlock(blockPanel3, BLOCK_NAME.turnToGo, (64 + 30) * (-1), (64 + 30) * (-2) + 25);
+        addSampleBlock(blockPanel3, BLOCK_NAME.turnToGo, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel3, BLOCK_NAME.turnToEnemy, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
+        addSampleBlock(blockPanel3, BLOCK_NAME.away, (64 + 30) * (0), (64 + 30) * (-2) + 100);
 
         const submitButton = BasicButton({
             text: "決定",
@@ -957,6 +977,34 @@ phina.define("Cat", {
             return battleField[self.ny][self.nx].name;
         };
 
+        // 目の前のフィールドが花壇かどうか
+        self.checkForwardFieldFlower = function(direction) {
+            let x = self.nx, y = self.ny;
+            if (direction === "north") {
+                y -= 1;
+            } else if (direction === "east") {
+                x += 1;
+            } else if (direction === "south") {
+                y += 1;
+            } else if (direction === "west") {
+                x -= 1;
+            }
+            // 座標が花壇の範囲なら
+            if (x < 2 || x > 7 || y < 2 || y > 10) {
+                return true;
+            }
+            return false;
+        };
+
+        // 足元が花壇かどうか
+        self.checkFieldFlower = function() {
+            // 座標が花壇の範囲なら
+            if (self.nx < 2 || self.nx > 7 || self.ny < 2 || self.ny > 10) {
+                return true;
+            }
+            return false;
+        };
+
         self.setDirection = function(direction) {
             self.direction = direction;
             if (direction === "north") {
@@ -981,7 +1029,7 @@ phina.define("Cat", {
                 .setPosition(param.field.gridX.span(x), param.field.gridY.span(y));
             area.setScale(0.1);
             area.tweener.scaleTo(1, 200).play();
-            area.alpha = 0.6;
+            area.alpha = 0.7;
             area.level = 0;
             area.name = color;
             battleField[y][x] = area;
@@ -1019,7 +1067,7 @@ phina.define("Cat", {
             // すでに自分の陣地の場合、レベルを上げるだけ
             if (battleField[y][x].name === color) {
                 battleField[y][x].level += 1;
-                battleField[y][x].alpha = 0.6 + battleField[y][x].level * 0.2;
+                battleField[y][x].alpha = 0.7 + battleField[y][x].level * 0.1;
                 return;
             }
 
@@ -1031,7 +1079,7 @@ phina.define("Cat", {
                     battleField[y][x] = null;
                 } else {
                     battleField[y][x].level -= 1;
-                    battleField[y][x].alpha = 0.6 + battleField[y][x].level * 0.2;
+                    battleField[y][x].alpha = 0.7 + battleField[y][x].level * 0.1;
                 }
                 return;
             }
@@ -1253,10 +1301,9 @@ phina.define('BattleScene', {
             strokeWidth: 0,
         }).addChildTo(this.uiLayer);
 
-        Sprite("green").addChildTo(this).setPosition(self.gridX.span(1.3), self.gridY.span(15));
-        const whiteAreaPanel = Sprite("white").addChildTo(this).setPosition(self.gridX.span(1.3), self.gridY.span(15)).alpha = 0.6;
-        Sprite("green").addChildTo(this).setPosition(self.gridX.span(3.3), self.gridY.span(15));
-        const blackAreaPanel = Sprite("black").addChildTo(this).setPosition(self.gridX.span(3.3), self.gridY.span(15)).alpha = 0.6;
+        // 陣地の数の表示
+        const whiteAreaPanel = Sprite("white").addChildTo(this).setPosition(self.gridX.span(1.3), self.gridY.span(15));
+        const blackAreaPanel = Sprite("black").addChildTo(this).setPosition(self.gridX.span(3.3), self.gridY.span(15));
 
         self.whiteAreaNumLabel = Label({fontSize:30,fontWeight:800, text: "0", fill: "black"}).addChildTo(this).setPosition(self.gridX.span(1.3), self.gridY.span(15));
         self.blackAreaNumLabel = Label({fontSize:30,fontWeight:800, text: "0", fill: "white"}).addChildTo(this).setPosition(self.gridX.span(3.3), self.gridY.span(15));
@@ -1381,7 +1428,11 @@ phina.define('BattleScene', {
         for (let x = 0; x < fieldPanel.gridX.columns; x++) {
             for (let y = 0; y < fieldPanel.gridY.columns; y++) {
                 const f = battleField[y][x];
-                Sprite("green").addChildTo(fieldPanel).setPosition(fieldPanel.gridX.span(x), fieldPanel.gridY.span(y));
+                if (x < 2 || x > 7 || y < 2 || y > 10) {
+                    Sprite("flower").addChildTo(fieldPanel).setPosition(fieldPanel.gridX.span(x), fieldPanel.gridY.span(y));
+                } else {
+                    Sprite("green").addChildTo(fieldPanel).setPosition(fieldPanel.gridX.span(x), fieldPanel.gridY.span(y));
+                }
                 if (f && f.name === "wall") {
                     f.addChildTo(fieldPanel).setPosition(fieldPanel.gridX.span(x), fieldPanel.gridY.span(y))
                 }
@@ -1436,7 +1487,7 @@ phina.define('BattleScene', {
         } else {
             playerProgram = new Program("player", param.trainingMode);
             // ワーク領域のプログラムを読み込む
-            const data = window.localStorage.getItem("work");
+            const data = window.localStorage.getItem(STORAGE_KEY.WORK);
             if (data) {
                 playerProgram.import(data);
             } else {
@@ -1451,7 +1502,7 @@ phina.define('BattleScene', {
         if (!enemyProgram || param.trainingMode) {
             enemyProgram = new Program("enemy", param.trainingMode);
             // ワーク領域のプログラムを読み込む
-            const data = window.localStorage.getItem("workEnemy");
+            const data = window.localStorage.getItem(STORAGE_KEY.ENEMY_WORK);
             if (data) {
                 enemyProgram.import(data);
             }
@@ -1551,7 +1602,7 @@ phina.define('BattleScene', {
                 // レベルアップ？
                 if (!self.trainingMode && self.enemyLevel >= myLevel) {
                     myLevel += 1;
-                    localStorage.setItem("level", myLevel);
+                    localStorage.setItem(STORAGE_KEY.LEVEL, myLevel);
                 }
             } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
                 Label({
@@ -1976,12 +2027,12 @@ phina.define('ProgramingScene', {
             if (param.targetProgram === playerProgram) {
                 // ワーク領域にプログラムを保存
                 const data = playerProgram.export();
-                window.localStorage.setItem("work", data);
+                window.localStorage.setItem(STORAGE_KEY.WORK, data);
             } else if (param.trainingMode) {
                 // 敵のプログラムを保存するのはトレーニングの場合だけ
                 // ワーク領域にプログラムを保存
                 const data = enemyProgram.export();
-                window.localStorage.setItem("workEnemy", data);
+                window.localStorage.setItem(STORAGE_KEY.ENEMY_WORK, data);
             }
             if (!param.trainingMode && playerProgram.export() !== self.oldProgram) {
                 App.pushScene(MessageDialogScene({message: "プログラムを変更したので\n対戦をやり直します。", callback: function() {
@@ -2188,12 +2239,12 @@ phina.define('SaveAndLoadScene', {
 
         function save(fileNumber) {
             const data = param.playerOrEnemy === "player" ? playerProgram.export() : enemyProgram.export();
-            window.localStorage.setItem("data" + fileNumber, data);
+            window.localStorage.setItem(STORAGE_KEY.DATA + fileNumber, data);
             App.pushScene(MessageDialogScene({message: "保存しました。"}));
         }
 
         function load(fileNumber) {
-            const data = window.localStorage.getItem("data" + fileNumber);
+            const data = window.localStorage.getItem(STORAGE_KEY.DATA + fileNumber);
             if (param.playerOrEnemy === "player") {
                 playerProgram.import(data);
             } else {
@@ -2203,7 +2254,7 @@ phina.define('SaveAndLoadScene', {
         }
 
         function canLoad(fileNumber) {
-            return !!window.localStorage.getItem("data" + fileNumber);
+            return !!window.localStorage.getItem(STORAGE_KEY.DATA + fileNumber);
         }
 
         // 閉じるボタン
@@ -2269,7 +2320,7 @@ phina.define('LoadURLScene', {
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(8))
         .on("pointstart", function() {
-            window.localStorage.setItem("workEnemy", param.data);
+            window.localStorage.setItem(STORAGE_KEY.ENEMY_WORK, param.data);
             App.pushScene(MessageDialogScene({message: "読み込みました。\n対戦相手「フリー」を選択してください。", callback: () => {removeQuery();self.exit()}}));
         });
 
@@ -3052,16 +3103,38 @@ phina.define('Block', {
                 }
                 return false;
             }
+            // 目の前が自石か
+            if (self.name === BLOCK_NAME.stone) {
+                const fieldName = target.getForwardFieldName(target.direction);
+                if (target.playerOrEnemy === "player") {
+                    if (fieldName === "whiteStone") {
+                        return true;
+                    }
+                } else {
+                    if (fieldName === "blackStone") {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            // 目の前が花壇か
+            if (self.name === BLOCK_NAME.forwardFlower) {
+                return target.checkForwardFieldFlower(target.direction);
+            }
+            // 足元が花壇か
+            if (self.name === BLOCK_NAME.checkFlower) {
+                return target.checkFieldFlower(target.direction);
+            }
             // 残り時間が半分以下
             if (self.name === BLOCK_NAME.watch) {
                 return (countdown / countdownMax) < 0.5;
             }
-            // 足元が自分のおじゃま石か
+            // 足元に自分のおじゃま石を置けるか
             if (self.name === BLOCK_NAME.checkStone) {
                 if (target.playerOrEnemy === "player") {
-                    return target.getFieldName() === "whiteStone";
+                    return target.getFieldName() !== "whiteStone";
                 } else {
-                    return target.getFieldName() === "blackStone";
+                    return target.getFieldName() !== "blackStone";
                 }
             }
             // フラグＡを立てる
@@ -3133,6 +3206,29 @@ phina.define('Block', {
                 }
                 if (target.ny - (nonTarget.nx - target.nx) <= nonTarget.ny && nonTarget.ny <= target.ny + (nonTarget.nx - target.nx)) {
                     target.setDirection("east");
+                    return true;
+                }
+                return true;
+            }
+            // 相手の方向に背を向ける
+            if (self.name === BLOCK_NAME.away) {
+                if (!nonTarget) {
+                    return true;
+                }
+                if (target.nx - (target.ny - nonTarget.ny) <= nonTarget.nx && nonTarget.nx <= target.nx + (target.ny - nonTarget.ny)) {
+                    target.setDirection("south");
+                    return true;
+                }
+                if (target.nx - (nonTarget.ny - target.ny) <= nonTarget.nx && nonTarget.nx <= target.nx + (nonTarget.ny - target.ny)) {
+                    target.setDirection("north");
+                    return true;
+                }
+                if (target.ny - (target.nx - nonTarget.nx) <= nonTarget.ny && nonTarget.ny <= target.ny + (target.nx - nonTarget.nx)) {
+                    target.setDirection("east");
+                    return true;
+                }
+                if (target.ny - (nonTarget.nx - target.nx) <= nonTarget.ny && nonTarget.ny <= target.ny + (nonTarget.nx - target.nx)) {
+                    target.setDirection("west");
                     return true;
                 }
                 return true;
@@ -3280,13 +3376,13 @@ phina.define('Block', {
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.myArea) {
-                self.title = "自陣判定";
+                self.title = "前方自陣地判定";
                 self.setImage("myArea");
                 self.description = "１マス先が自分の陣地かどうかを判定する。自分の陣地なら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.enemyArea) {
-                self.title = "敵陣判定";
+                self.title = "前方敵陣地判定";
                 self.setImage("enemyArea");
                 self.description = "１マス先が敵の陣地かどうかを判定する。敵の陣地なら青矢印へ。";
                 self.doubleArrow = true;
@@ -3345,6 +3441,12 @@ phina.define('Block', {
                 self.description = "敵がいる方向を向く。";
                 self.doubleArrow = false;
                 self.turn = 0;
+            } else if (name === BLOCK_NAME.away) {
+                self.title = "離脱";
+                self.setImage("away");
+                self.description = "敵がいる方向に背を向ける。";
+                self.doubleArrow = false;
+                self.turn = 0;
             } else if (name === BLOCK_NAME.goRight) {
                 self.title = "斜め右前進";
                 self.setImage("goRight");
@@ -3376,9 +3478,9 @@ phina.define('Block', {
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.checkStone) {
-                self.title = "石存在判定";
+                self.title = "石配置判定";
                 self.setImage("checkStone");
-                self.description = "足元に自分のおじゃま石があるかどうかを判定する。あるなら青矢印へ。";
+                self.description = "足元におじゃま石を置けるかどうかを判定する。置けるなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.startSub) {
@@ -3394,9 +3496,27 @@ phina.define('Block', {
                 self.doubleArrow = false;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.enemyStone) {
-                self.title = "敵石判定";
+                self.title = "前方敵石判定";
                 self.setImage("enemyStone");
                 self.description = "１マス先が敵のおじゃま石かどうかを判定する。敵のおじゃま石なら青矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.stone) {
+                self.title = "前方自石判定";
+                self.setImage("stone");
+                self.description = "１マス先が自分のおじゃま石かどうかを判定する。自分のおじゃま石なら青矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.checkFlower) {
+                self.title = "花壇判定";
+                self.setImage("checkFlower");
+                self.description = "足元が花壇かどうかを判定する。花壇なら青矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.forwardFlower) {
+                self.title = "前方花壇判定";
+                self.setImage("forwardFlower");
+                self.description = "１マス先が花壇かどうかを判定する。花壇なら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.turnToGo) {
