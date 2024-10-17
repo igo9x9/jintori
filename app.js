@@ -649,6 +649,17 @@ phina.define('BlockSelectScene', {
                 pointStartDy = e.pointer.dy;
             });
             block.on("pointend", (e) => {
+
+                // 上に隠れたブロック
+                if (block.position.y + itemLayer.position.y + blockPanel.height/2 < 0) {
+                    return;
+                }
+
+                // 下に隠れたブロック
+                if (block.position.y + itemLayer.position.y - blockPanel.height/2 > 0) {
+                    return;
+                }
+
                 // 0.2秒以内に指を離したなら、タップしたと判定
                 if ((new Date()).getTime() - pointStartTime > 200) {
                     return;
@@ -700,7 +711,7 @@ phina.define('BlockSelectScene', {
             }).addChildTo(itemLayer).setPosition(block.x, block.y);
         }
 
-        RectangleShape({
+        const waku = RectangleShape({
             width: this.width - 118,
             height: 552,
             x: this.gridX.center(),
