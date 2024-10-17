@@ -649,8 +649,8 @@ phina.define('BlockSelectScene', {
                 pointStartDy = e.pointer.dy;
             });
             block.on("pointend", (e) => {
-                // 0.1秒以内に指を離したなら、タップしたと判定
-                if ((new Date()).getTime() - pointStartTime > 100) {
+                // 0.2秒以内に指を離したなら、タップしたと判定
+                if ((new Date()).getTime() - pointStartTime > 200) {
                     return;
                 }
                 // Y座標が同じなら、タップしたと判定
