@@ -29,7 +29,6 @@ ASSETS = {
         "forward": "img/blocks/forward.png",
         "turnRight": "img/blocks/turnRight.png",
         "turnLeft": "img/blocks/turnLeft.png",
-        "goBack": "img/blocks/goBack.png",
         "non": "img/blocks/non.png",
         "stop": "img/blocks/stop.png",
         "random1": "img/blocks/random1.png",
@@ -42,6 +41,15 @@ ASSETS = {
         "flagBon": "img/blocks/flagBon.png",
         "flagBoff": "img/blocks/flagBoff.png",
         "flagBCheck": "img/blocks/flagBCheck.png",
+        "flagCon": "img/blocks/flagCon.png",
+        "flagCoff": "img/blocks/flagCoff.png",
+        "flagCCheck": "img/blocks/flagC.png",
+        "flagDon": "img/blocks/flagDon.png",
+        "flagDoff": "img/blocks/flagDoff.png",
+        "flagDCheck": "img/blocks/flagD.png",
+        "flagEon": "img/blocks/flagEon.png",
+        "flagEoff": "img/blocks/flagEoff.png",
+        "flagECheck": "img/blocks/flagE.png",
         "enemy": "img/blocks/enemy.png",
         "turnToEnemy": "img/blocks/turnToEnemy.png",
         "goRight": "img/blocks/goRight.png",
@@ -59,6 +67,7 @@ ASSETS = {
         "checkFlower": "img/blocks/checkFlower.png",
         "forwardFlower": "img/blocks/flower.png",
         "away": "img/blocks/away.png",
+        "putStoneHistory": "img/blocks/putStoneHistory.png",
 
         "checked": "img/blocks/checked.png",
 
@@ -94,7 +103,6 @@ const BLOCK_NAME = {
     random1: "G",
     myArea: "H",
     putStone: "I",
-    goBack: "J",
     watch: "K",
     flagAon: "L",
     flagACheck: "M",
@@ -119,6 +127,17 @@ const BLOCK_NAME = {
     checkFlower: "f",
     forwardFlower: "g",
     away: "h",
+    putStoneHistory: "i",
+    stone: "j",
+    flagCon: "k",
+    flagCoff: "l",
+    flagCCheck: "m",
+    flagDon: "n",
+    flagDoff: "o",
+    flagDCheck: "p",
+    flagEon: "q",
+    flagEoff: "r",
+    flagECheck: "s",
 };
 
 
@@ -617,142 +636,167 @@ phina.define('BlockSelectScene', {
 
         showArrow();
 
+        let pointStartTime;
+
         // ブロックを並べる
         function addSampleBlock(panel, name, x, y) {
             const block = Block({name: name, sampleMode: true, hideArrows: true});
             block.addChildTo(panel);
             block.setPosition(x, y);
             block.on("pointstart", () => {
+                pointStartTime = (new Date()).getTime();
+            });
+            block.on("pointend", () => {
+                // 0.2秒以内に指を離したなら、タップしたと判定
+                if ((new Date()).getTime() - pointStartTime > 200) {
+                    return;
+                }
                 selectedBlock.changeBlock(block.name, true, arrowOK, arrowNG);
                 description.text = block.description;
                 titleLabel.text = block.title;
                 turnLabel.text = "消費ターン数：" + block.turn;
                 showArrow();
+                moveSelectMark();
             });
         }
 
-        const blockPanel1 = RectangleShape({
+        let selectMark;
+
+        function moveSelectMark() {
+            const block = itemLayer.children.find(b => {
+                return b.name === selectedBlock.name;
+            });
+            // selectMark.setPosition(block.x, block.y);
+            if (selectMark) {
+                selectMark.remove();
+            }
+            selectMark = RectangleShape({
+                width: 75,
+                height: 75,
+                fill: "transparent",
+                stroke: "red",
+                strokeWidth: 5,
+                cornerRadius: 3,
+            }).addChildTo(itemLayer).setPosition(block.x, block.y);
+        }
+
+        function markFirstSelectedBlock() {
+            const block = itemLayer.children.find(b => {
+                return b.name === selectedBlock.name;
+            });
+            RectangleShape({
+                width: 75,
+                height: 75,
+                fill: "transparent",
+                stroke: "lightgray",
+                strokeWidth: 5,
+                cornerRadius: 3,
+            }).addChildTo(itemLayer).setPosition(block.x, block.y);
+        }
+
+        RectangleShape({
+            width: this.width - 118,
+            height: 552,
+            x: this.gridX.center(),
+            y: this.gridY.center(1),
+            fill: "white",
+            strokeWidth: 10,
+            cornerRadius:10,
+            stroke: "black",
+        }).addChildTo(this);
+        const blockPanel = RectangleShape({
             width: this.width - 120,
             height: 550,
             x: this.gridX.center(),
             y: this.gridY.center(1),
-            fill: "white",
-            cornerRadius: 10,
+            fill: "transparent",
+            strokeWidth: 0,
         }).addChildTo(this);
+
+        const scrollable = Scrollable().attachTo(blockPanel).enableClip().setScrollType("y").setFriction(0);
+        scrollable.setMinY(-800);
+        scrollable.setMaxY(0);
+
+        var itemLayer = DisplayElement().addChildTo(blockPanel);
+
         Label({
             text: "基本チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel1).setPosition(0, -170);
+        }).addChildTo(itemLayer).setPosition(0, (64 + 30) * (-3) + 50);
 
-        BasicButton({
-            width: 200,
-            height: 50,
-            text: "応用チップ >",
-        }).addChildTo(blockPanel1).setPosition(150, -240)
-        .on("pointstart", function() {
-            blockPanel1.tweener.to({x: self.gridX.center(-15)}, 200).play();
-            blockPanel2.tweener.to({x: self.gridX.center()}, 200).play();
-        });
+        addSampleBlock(itemLayer, BLOCK_NAME.empty, (64 + 30) * (-2), (64 + 30) * (-2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.non, (64 + 30) * (-1), (64 + 30) * (-2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.forward, (64 + 30) * (0), (64 + 30) * (-2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.goRight, (64 + 30) * (1), (64 + 30) * (-2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.goLeft, (64 + 30) * (2), (64 + 30) * (-2) + 50);
 
-        BasicButton({
-            width: 200,
-            height: 50,
-            text: "< 便利チップ",
-        }).addChildTo(blockPanel1).setPosition(-150, -240)
-        .on("pointstart", function() {
-            blockPanel1.tweener.to({x: self.gridX.center(15)}, 200).play();
-            blockPanel3.tweener.to({x: self.gridX.center()}, 200).play();
-        });
+        addSampleBlock(itemLayer, BLOCK_NAME.turnRight, (64 + 30) * (-2), (64 + 30) * (-1) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.turnLeft, (64 + 30) * (-1), (64 + 30) * (-1) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.putStone, (64 + 30) * (0), (64 + 30) * (-1) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.checkStone, (64 + 30) * (1), (64 + 30) * (-1) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.stop, (64 + 30) * (2), (64 + 30) * (-1) + 50);
 
-        addSampleBlock(blockPanel1, BLOCK_NAME.empty, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.non, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.forward, (64 + 30) * (0), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.goRight, (64 + 30) * (1), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.goLeft, (64 + 30) * (2), (64 + 30) * (-2) + 100);
+        addSampleBlock(itemLayer, BLOCK_NAME.stopRight, (64 + 30) * (-2), (64 + 30) * (0) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.stopLeft, (64 + 30) * (-1), (64 + 30) * (0) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.random1, (64 + 30) * (0), (64 + 30) * (0) + 50);
 
-        addSampleBlock(blockPanel1, BLOCK_NAME.goBack, (64 + 30) * (-2), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.turnRight, (64 + 30) * (-1), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.turnLeft, (64 + 30) * (0), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.putStone, (64 + 30) * (1), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.stop, (64 + 30) * (2), (64 + 30) * (-1) + 100);
-
-        addSampleBlock(blockPanel1, BLOCK_NAME.stopRight, (64 + 30) * (-2), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.stopLeft, (64 + 30) * (-1), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.checkStone, (64 + 30) * (0), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel1, BLOCK_NAME.random1, (64 + 30) * (1), (64 + 30) * (0) + 100);
-
-        const blockPanel2 = RectangleShape({
-            width: this.width - 120,
-            height: 550,
-            x: this.gridX.center(15),
-            y: this.gridY.center(1),
-            fill: "white",
-            cornerRadius: 10,
-        }).addChildTo(this);
         Label({
             text: "応用チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel2).setPosition(0, -170);
+        }).addChildTo(itemLayer).setPosition(0, (64 + 30) * (1) + 50);
 
-        BasicButton({
-            width: 200,
-            height: 50,
-            text: "< 基本チップ",
-        }).addChildTo(blockPanel2).setPosition(-150, -240)
-        .on("pointstart", function() {
-            blockPanel2.tweener.to({x: self.gridX.center(15)}, 200).play();
-            blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
-        });
+        addSampleBlock(itemLayer, BLOCK_NAME.gotoSub, (64 + 30) * (-2), (64 + 30) * (2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.myArea, (64 + 30) * (-1), (64 + 30) * (2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.enemyArea, (64 + 30) * (0), (64 + 30) * (2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.enemy, (64 + 30) * (1), (64 + 30) * (2) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.enemyDistance, (64 + 30) * (2), (64 + 30) * (2) + 50);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.gotoSub, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagAon, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagAoff, (64 + 30) * (0), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBon, (64 + 30) * (1), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBoff, (64 + 30) * (2), (64 + 30) * (-2) + 100);
+        addSampleBlock(itemLayer, BLOCK_NAME.watch, (64 + 30) * (-2), (64 + 30) * (3) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.enemyStone, (64 + 30) * (-1), (64 + 30) * (3) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.stone, (64 + 30) * (0), (64 + 30) * (3) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.checkFlower, (64 + 30) * (1), (64 + 30) * (3) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.forwardFlower, (64 + 30) * (2), (64 + 30) * (3) + 50);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagACheck, (64 + 30) * (-2), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.flagBCheck, (64 + 30) * (-1), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.myArea, (64 + 30) * (0), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyArea, (64 + 30) * (1), (64 + 30) * (-1) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemy, (64 + 30) * (2), (64 + 30) * (-1) + 100);
+        addSampleBlock(itemLayer, BLOCK_NAME.putStoneHistory, (64 + 30) * (-2), (64 + 30) * (4) + 50);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyDistance, (64 + 30) * (-2), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.watch, (64 + 30) * (-1), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.enemyStone, (64 + 30) * (0), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.stone, (64 + 30) * (1), (64 + 30) * (0) + 100);
-        addSampleBlock(blockPanel2, BLOCK_NAME.checkFlower, (64 + 30) * (2), (64 + 30) * (0) + 100);
+        Label({
+            text: "フラグチップ",
+            fontSize: 35,
+            fontWeight: 800,
+        }).addChildTo(itemLayer).setPosition(0, (64 + 30) * (5) + 50);
 
-        addSampleBlock(blockPanel2, BLOCK_NAME.forwardFlower, (64 + 30) * (-2), (64 + 30) * (1) + 100);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagAon, (64 + 30) * (-2), (64 + 30) * (6) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagAoff, (64 + 30) * (-1), (64 + 30) * (6) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagBon, (64 + 30) * (0), (64 + 30) * (6) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagBoff, (64 + 30) * (1), (64 + 30) * (6) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagCon, (64 + 30) * (2), (64 + 30) * (6) + 50);
 
-        const blockPanel3 = RectangleShape({
-            width: this.width - 120,
-            height: 550,
-            x: this.gridX.center(-15),
-            y: this.gridY.center(1),
-            fill: "white",
-            cornerRadius: 10,
-        }).addChildTo(this);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagCoff, (64 + 30) * (-2), (64 + 30) * (7) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagDon, (64 + 30) * (-1), (64 + 30) * (7) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagDoff, (64 + 30) * (0), (64 + 30) * (7) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagEon, (64 + 30) * (1), (64 + 30) * (7) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagEoff, (64 + 30) * (2), (64 + 30) * (7) + 50);
+
+        addSampleBlock(itemLayer, BLOCK_NAME.flagACheck, (64 + 30) * (-2), (64 + 30) * (8) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagBCheck, (64 + 30) * (-1), (64 + 30) * (8) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagCCheck, (64 + 30) * (0), (64 + 30) * (8) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagDCheck, (64 + 30) * (1), (64 + 30) * (8) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.flagECheck, (64 + 30) * (2), (64 + 30) * (8) + 50);
+
         Label({
             text: "便利チップ",
             fontSize: 35,
             fontWeight: 800,
-        }).addChildTo(blockPanel3).setPosition(0, -170);
+        }).addChildTo(itemLayer).setPosition(0, (64 + 30) * (9) + 50);
 
-        BasicButton({
-            width: 200,
-            height: 50,
-            text: "基本チップ >",
-        }).addChildTo(blockPanel3).setPosition(150, -240)
-        .on("pointstart", function() {
-            blockPanel3.tweener.to({x: self.gridX.center(-15)}, 200).play();
-            blockPanel1.tweener.to({x: self.gridX.center()}, 200).play();
-        });
+        addSampleBlock(itemLayer, BLOCK_NAME.turnToGo, (64 + 30) * (-2), (64 + 30) * (10) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.turnToEnemy, (64 + 30) * (-1), (64 + 30) * (10) + 50);
+        addSampleBlock(itemLayer, BLOCK_NAME.away, (64 + 30) * (0), (64 + 30) * (10) + 50);
 
-        addSampleBlock(blockPanel3, BLOCK_NAME.turnToGo, (64 + 30) * (-2), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel3, BLOCK_NAME.turnToEnemy, (64 + 30) * (-1), (64 + 30) * (-2) + 100);
-        addSampleBlock(blockPanel3, BLOCK_NAME.away, (64 + 30) * (0), (64 + 30) * (-2) + 100);
+        markFirstSelectedBlock();
+        moveSelectMark();
 
         const submitButton = BasicButton({
             text: "決定",
@@ -760,7 +804,7 @@ phina.define('BlockSelectScene', {
             height: 50,
             primary: true,
         })
-        .addChildTo(self).setPosition(self.gridX.center(-3), self.gridY.span(14.5))
+        .addChildTo(self).setPosition(self.gridX.center(-3), self.gridY.span(14.6))
         .on("pointstart", function() {
             params.block.changeBlock(selectedBlock.name, false, selectedBlock.arrowOK, selectedBlock.arrowNG);
             self.exit();
@@ -772,7 +816,7 @@ phina.define('BlockSelectScene', {
             width: 160,
             height: 50,
         })
-        .addChildTo(self).setPosition(self.gridX.center(3), self.gridY.span(14.5))
+        .addChildTo(self).setPosition(self.gridX.center(3), self.gridY.span(14.6))
         .on("pointstart", function() {
             self.exit();
         });
@@ -804,6 +848,9 @@ phina.define("Cat", {
         self.ny = param.y;
         self.direction = param.direction;
         self.playerOrEnemy = param.playerOrEnemy;
+
+        // 石を置いたときのcountdownの値
+        self.putStoneTiming = 0;
 
         const ss = FrameAnimation('nekoSpriteSheet')
         ss.attachTo(this);
@@ -901,6 +948,7 @@ phina.define("Cat", {
             createArea(self.nx, self.ny);
             putStoneAnimation(color);
             battleField[self.ny][self.nx].name = color + "Stone";
+            self.putStoneTiming = countdown;
 
             addArea(self.nx, self.ny);
 
@@ -1087,8 +1135,7 @@ phina.define("Cat", {
             throw("ここには到達しない");
         }
 
-        // 前進
-
+        // 移動
         function moving(direction, rightOrLeft, xx, yy) {
             if (self.bumpSomething(direction, rightOrLeft)) {
                 self.tweener
@@ -1168,83 +1215,6 @@ phina.define("Cat", {
                 xx = 1;
             }
             moving("south", rightOrLeft, xx, yy);
-        };
-
-        // 後退
-        self.backToSouth = function() {
-            ss.gotoAndPlay("workToNorth");
-            if (self.bumpSomething("south")) {
-                self.tweener
-                .to({y: param.field.gridY.span(self.ny + 0.5)}, moveSpeed/2)
-                .to({y: param.field.gridY.span(self.ny)}, 100)
-                .call(function() {ss.gotoAndPlay("north");})
-                .play();
-                return;
-            }
-            self.tweener
-                .to({y: param.field.gridY.span(self.ny + 1)}, moveSpeed)
-                .call(function() {
-                    self.ny += 1;
-                    ss.gotoAndPlay("north");
-                })
-                .play();
-        };
-
-        self.backToNorth = function() {
-            ss.gotoAndPlay("workToSouth");
-            if (self.bumpSomething("north")) {
-                self.tweener
-                .to({y: param.field.gridY.span(self.ny - 0.5)}, moveSpeed/2)
-                .to({y: param.field.gridY.span(self.ny)}, 100)
-                .call(function() {ss.gotoAndPlay("south");})
-                .play();
-                return;
-            }
-            self.tweener
-                .to({y: param.field.gridY.span(self.ny - 1)}, moveSpeed)
-                .call(function() {
-                    self.ny -= 1;
-                    ss.gotoAndPlay("south");
-                })
-                .play();
-        };
-
-        self.backToWest = function() {
-            ss.gotoAndPlay("workToEast");
-            if (self.bumpSomething("west")) {
-                self.tweener
-                .to({x: param.field.gridX.span(self.nx - 0.5)}, moveSpeed/2)
-                .to({x: param.field.gridX.span(self.nx)}, 100)
-                .call(function() {ss.gotoAndPlay("east");})
-                .play();
-                return;
-            }
-            self.tweener
-                .to({x: param.field.gridX.span(self.nx - 1)}, moveSpeed)
-                .call(function() {
-                    self.nx -= 1;
-                    ss.gotoAndPlay("east");
-                })
-                .play();
-        };
-
-        self.backToEast = function() {
-            ss.gotoAndPlay("workToWest");
-            if (self.bumpSomething("east")) {
-                self.tweener
-                .to({x: param.field.gridX.span(self.nx + 0.5)}, moveSpeed/2)
-                .to({x: param.field.gridX.span(self.nx)}, 100)
-                .call(function() {ss.gotoAndPlay("west");})
-                .play();
-                return;
-            }
-            self.tweener
-                .to({x: param.field.gridX.span(self.nx + 1)}, moveSpeed)
-                .call(function() {
-                    self.nx += 1;
-                    ss.gotoAndPlay("west");
-                })
-                .play();
         };
 
     },
@@ -1468,6 +1438,12 @@ phina.define('BattleScene', {
             enemyProgramingFlgA = false;
             playerProgramingFlgB = false;
             enemyProgramingFlgB = false;
+            playerProgramingFlgC = false;
+            enemyProgramingFlgC = false;
+            playerProgramingFlgD = false;
+            enemyProgramingFlgD = false;
+            playerProgramingFlgE = false;
+            enemyProgramingFlgE = false;
         };
 
         self.on("resume", function() {
@@ -1593,12 +1569,12 @@ phina.define('BattleScene', {
 
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
                 Label({
-                    text: "勝ち！",
+                    text: "WIN",
                     fontSize: 150,
                     fill: "white",
                     stroke: "red",
                     strokeWidth: 20,
-                }).addChildTo(self).setPosition(self.gridX.center(0.4), self.gridY.center(-1));
+                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
                 // レベルアップ？
                 if (!self.trainingMode && self.enemyLevel >= myLevel) {
                     myLevel += 1;
@@ -1606,7 +1582,7 @@ phina.define('BattleScene', {
                 }
             } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
                 Label({
-                    text: "負け",
+                    text: "LOSE",
                     fontSize: 150,
                     fill: "white",
                     fontWeight: 800,
@@ -1615,7 +1591,7 @@ phina.define('BattleScene', {
                 }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
             } else {
                 Label({
-                    text: "引き分け",
+                    text: "DRAW",
                     fontSize: 150,
                     fill: "white",
                     fontWeight: 800,
@@ -2082,10 +2058,10 @@ phina.define('ProgramingScene', {
 
         const stepBackButton = BasicButton({
             text: "<",
-            width: 50,
+            width: 100,
             height: 50,
         }).addChildTo(self)
-        .setPosition(self.gridX.center(-6.5), self.gridY.span(15.2))
+        .setPosition(self.gridX.center(-6), self.gridY.span(15.2))
         .on("pointstart", function() {
             if (historyIndex > 0) {
                 historyIndex -= 1;
@@ -2093,15 +2069,14 @@ phina.define('ProgramingScene', {
                 mark.setPosition(block.x, block.y);
             }
             stepButtonEnable();
-            setFlagLabelText();
         });
 
         const stepForwardButton = BasicButton({
             text: ">",
-            width: 50,
+            width: 100,
             height: 50,
         }).addChildTo(self)
-        .setPosition(self.gridX.center(-4.7), self.gridY.span(15.2))
+        .setPosition(self.gridX.center(-3), self.gridY.span(15.2))
         .on("pointstart", function() {
             if (historyIndex < param.targetProgram.blockHistory.length - 1) {
                 historyIndex += 1;
@@ -2109,7 +2084,6 @@ phina.define('ProgramingScene', {
                 mark.setPosition(block.x, block.y);
             }
             stepButtonEnable();
-            setFlagLabelText();
         });
 
         function stepButtonEnable() {
@@ -2124,22 +2098,6 @@ phina.define('ProgramingScene', {
         }
 
         stepButtonEnable();
-
-        function setFlagLabelText() {
-            flagLabel.text =
-                "フラグA：" + (param.targetProgram.blockHistory[historyIndex] && param.targetProgram.blockHistory[historyIndex].flagA ? "ON" : "OFF") +
-                "\n" +
-                "フラグB：" + (param.targetProgram.blockHistory[historyIndex] && param.targetProgram.blockHistory[historyIndex].flagB ? "ON" : "OFF");
-        }
-
-        const flagLabel = LabelArea({
-            text: "",
-            fontSize: 18,
-            fill: "white",
-            width: 120,
-            height: 50,
-        }).addChildTo(this).setPosition(self.gridX.center(-2.1), self.gridY.span(15.3));
-        setFlagLabelText();
 
         self.on("resume", function() {
             if (clearProgramFlg) {
@@ -2552,6 +2510,12 @@ function Program(playerOrEnemy, trainingMode) {
     enemyProgramingFlgA = false;
     playerProgramingFlgB = false;
     enemyProgramingFlgB = false;
+    playerProgramingFlgC = false;
+    enemyProgramingFlgC = false;
+    playerProgramingFlgD = false;
+    enemyProgramingFlgD = false;
+    playerProgramingFlgE = false;
+    enemyProgramingFlgE = false;
 
     self.blocks = [];
 
@@ -2608,7 +2572,7 @@ function Program(playerOrEnemy, trainingMode) {
         self.blockToReturnWhenSubroutineDone.push({x: self.x, y: self.y});
         self.lastX = self.x;
         self.lastY = self.y;
-        self.blockHistory.push({block: block, flagA: playerProgramingFlgA, flagB: playerProgramingFlgB});
+        self.blockHistory.push({block: block});
         self.x = 4;
         self.y = 8;
     };
@@ -2806,11 +2770,7 @@ function Program(playerOrEnemy, trainingMode) {
         self.lastX = self.x;
         self.lastY = self.y;
 
-        if (playerOrEnemy === "player") {
-            self.blockHistory.push({block: self.blocks[self.y][self.x], flagA: playerProgramingFlgA, flagB: playerProgramingFlgB});
-        } else {
-            self.blockHistory.push({block: self.blocks[self.y][self.x], flagA: enemyProgramingFlgA, flagB: enemyProgramingFlgB});
-        }
+        self.blockHistory.push({block: self.blocks[self.y][self.x]});
 
         if (self.blockHistory.length > 50) {
             self.blockHistory.shift();
@@ -2854,11 +2814,7 @@ function Program(playerOrEnemy, trainingMode) {
         self.lastX = self.x;
         self.lastY = self.y;
 
-        if (playerOrEnemy === "player") {
-            self.blockHistory.push({block: self.blocks[self.y][self.x], flagA: playerProgramingFlgA, flagB: playerProgramingFlgB});
-        } else {
-            self.blockHistory.push({block: self.blocks[self.y][self.x], flagA: enemyProgramingFlgA, flagB: enemyProgramingFlgB});
-        }
+        self.blockHistory.push({block: self.blocks[self.y][self.x]});
 
         if (self.blockHistory.length > 20) {
             self.blockHistory.shift();
@@ -2876,6 +2832,12 @@ let playerProgramingFlgA = false;
 let enemyProgramingFlgA = false;
 let playerProgramingFlgB = false;
 let enemyProgramingFlgB = false;
+let playerProgramingFlgC = false;
+let enemyProgramingFlgC = false;
+let playerProgramingFlgD = false;
+let enemyProgramingFlgD = false;
+let playerProgramingFlgE = false;
+let enemyProgramingFlgE = false;
 
 // ブロック画像
 phina.define('Block', {
@@ -2908,6 +2870,10 @@ phina.define('Block', {
         });
 
         this.on("pointstay", function() {
+
+            if (self.sampleMode) {
+                return;
+            }
 
             if (self.name === BLOCK_NAME.empty) {
                 return;
@@ -3003,19 +2969,6 @@ phina.define('Block', {
                     target.moveToEast("left");
                 } else if (target.direction === "south") {
                     target.moveToSouth("left");
-                }
-                return true;
-            }
-            // 後退
-            if (self.name === BLOCK_NAME.goBack) {
-                if (target.direction === "north") {
-                    target.backToSouth();
-                } else if (target.direction === "west") {
-                    target.backToEast();
-                } else if (target.direction === "east") {
-                    target.backToWest();
-                } else if (target.direction === "south") {
-                    target.backToNorth();
                 }
                 return true;
             }
@@ -3155,6 +3108,13 @@ phina.define('Block', {
                 }
                 return true;
             }
+            // フラグＡのチェック
+            if (self.name === BLOCK_NAME.flagACheck) {
+                if (target.playerOrEnemy === "player") {
+                    return playerProgramingFlgA;
+                }
+                return enemyProgramingFlgA;
+            }
             // フラグＢを立てる
             if (self.name === BLOCK_NAME.flagBon) {
                 if (target.playerOrEnemy === "player") {
@@ -3173,19 +3133,87 @@ phina.define('Block', {
                 }
                 return true;
             }
-            // フラグＡのチェック
-            if (self.name === BLOCK_NAME.flagACheck) {
-                if (target.playerOrEnemy === "player") {
-                    return playerProgramingFlgA;
-                }
-                return enemyProgramingFlgA;
-            }
             // フラグＢのチェック
             if (self.name === BLOCK_NAME.flagBCheck) {
                 if (target.playerOrEnemy === "player") {
                     return playerProgramingFlgB;
                 }
                 return enemyProgramingFlgB;
+            }
+            // フラグCを立てる
+            if (self.name === BLOCK_NAME.flagCon) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgC = true;
+                } else {
+                    enemyProgramingFlgC = true;
+                }
+                return true;
+            }
+            // フラグCを寝かす
+            if (self.name === BLOCK_NAME.flagCoff) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgC = false;
+                } else {
+                    enemyProgramingFlgC = false;
+                }
+                return true;
+            }
+            // フラグCのチェック
+            if (self.name === BLOCK_NAME.flagCCheck) {
+                if (target.playerOrEnemy === "player") {
+                    return playerProgramingFlgC;
+                }
+                return enemyProgramingFlgC;
+            }
+            // フラグDを立てる
+            if (self.name === BLOCK_NAME.flagDon) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgD = true;
+                } else {
+                    enemyProgramingFlgD = true;
+                }
+                return true;
+            }
+            // フラグDを寝かす
+            if (self.name === BLOCK_NAME.flagDoff) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgD = false;
+                } else {
+                    enemyProgramingFlgD = false;
+                }
+                return true;
+            }
+            // フラグDのチェック
+            if (self.name === BLOCK_NAME.flagDCheck) {
+                if (target.playerOrEnemy === "player") {
+                    return playerProgramingFlgD;
+                }
+                return enemyProgramingFlgD;
+            }
+            // フラグEを立てる
+            if (self.name === BLOCK_NAME.flagEon) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgE = true;
+                } else {
+                    enemyProgramingFlgE = true;
+                }
+                return true;
+            }
+            // フラグEを寝かす
+            if (self.name === BLOCK_NAME.flagEoff) {
+                if (target.playerOrEnemy === "player") {
+                    playerProgramingFlgE = false;
+                } else {
+                    enemyProgramingFlgE = false;
+                }
+                return true;
+            }
+            // フラグEのチェック
+            if (self.name === BLOCK_NAME.flagECheck) {
+                if (target.playerOrEnemy === "player") {
+                    return playerProgramingFlgE;
+                }
+                return enemyProgramingFlgE;
             }
             // 相手の方向を向く
             if (self.name === BLOCK_NAME.turnToEnemy) {
@@ -3323,6 +3351,11 @@ phina.define('Block', {
                 // プログラムクラス側で対応する
                 return true;
             }
+            // 最後に石を置いてから一定期間が過ぎていたらfalse
+            if (self.name === BLOCK_NAME.putStoneHistory) {
+                // 最後に石を置いた時のcountdownの値との差が一定以下ならtrue
+                return target.putStoneTiming - countdown <= 12;
+            }
 
         };
 
@@ -3339,12 +3372,6 @@ phina.define('Block', {
                 self.description = "その場で左に向きを変える。";
                 self.doubleArrow = false;
                 self.turn = 0;
-            } else if (name === BLOCK_NAME.goBack) {
-                self.title = "後退";
-                self.setImage("goBack");
-                self.description = "向きを変えずに１マス後退する。";
-                self.doubleArrow = false;
-                self.turn = 1;
             } else if (name === BLOCK_NAME.forward) {
                 self.title = "前進";
                 self.setImage("forward");
@@ -3429,6 +3456,60 @@ phina.define('Block', {
                 self.description = "フラグＢがオンなら青矢印へ、オフなら赤矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
+            } else if (name === BLOCK_NAME.flagCon) {
+                self.title = "フラグCオン";
+                self.setImage("flagCon");
+                self.description = "フラグＣをオンにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagCoff) {
+                self.title = "フラグCオフ";
+                self.setImage("flagCoff");
+                self.description = "フラグＣをオフにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagCCheck) {
+                self.title = "フラグC判定";
+                self.setImage("flagCCheck");
+                self.description = "フラグＣがオンなら青矢印へ、オフなら赤矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagDon) {
+                self.title = "フラグDオン";
+                self.setImage("flagDon");
+                self.description = "フラグＤをオンにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagDoff) {
+                self.title = "フラグDオフ";
+                self.setImage("flagDoff");
+                self.description = "フラグＤをオフにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagDCheck) {
+                self.title = "フラグD判定";
+                self.setImage("flagDCheck");
+                self.description = "フラグＤがオンなら青矢印へ、オフなら赤矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagEon) {
+                self.title = "フラグEオン";
+                self.setImage("flagEon");
+                self.description = "フラグＥをオンにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagEoff) {
+                self.title = "フラグEオフ";
+                self.setImage("flagEoff");
+                self.description = "フラグＥをオフにする。";
+                self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.flagECheck) {
+                self.title = "フラグE判定";
+                self.setImage("flagECheck");
+                self.description = "フラグＥがオンなら青矢印へ、オフなら赤矢印へ。";
+                self.doubleArrow = true;
+                self.turn = 0;
             } else if (name === BLOCK_NAME.enemy) {
                 self.title = "敵方向判定";
                 self.setImage("enemy");
@@ -3508,15 +3589,15 @@ phina.define('Block', {
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.checkFlower) {
-                self.title = "花壇判定";
+                self.title = "花判定";
                 self.setImage("checkFlower");
-                self.description = "足元が花壇かどうかを判定する。花壇なら青矢印へ。";
+                self.description = "足元に花が存在するかどうかを判定する。存在するなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.forwardFlower) {
-                self.title = "前方花壇判定";
+                self.title = "前方花判定";
                 self.setImage("forwardFlower");
-                self.description = "１マス先が花壇かどうかを判定する。花壇なら青矢印へ。";
+                self.description = "１マス先に花が存在するかどうかを判定する。存在するなら青矢印へ。";
                 self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.turnToGo) {
@@ -3524,6 +3605,12 @@ phina.define('Block', {
                 self.setImage("turnToGo");
                 self.description = "前進できる方向に向く。前方→右→後ろ→左の順に探す。";
                 self.doubleArrow = false;
+                self.turn = 0;
+            } else if (name === BLOCK_NAME.putStoneHistory) {
+                self.title = "石経過期間";
+                self.setImage("putStoneHistory");
+                self.description = "最後におじゃま石を配置してから一定時間（5ターン）が経っていたら、赤矢印へ。";
+                self.doubleArrow = true;
                 self.turn = 0;
             } else if (name === BLOCK_NAME.empty) {
                 self.title = "チップなし";
@@ -3771,6 +3858,337 @@ phina.main(function() {
 
     App.run();
 
+});
+
+// スクロール可能にするアクセサリ
+// https://qiita.com/simiraaaa/items/52de20a30a02600f2486
+phina.define('Scrollable', {
+    superClass: 'phina.accessory.Accessory',
+    scrollType: 'normal',
+    vx: 0,
+    vy: 0,
+    minX: -Infinity,
+    minY: -Infinity,
+    maxX: Infinity,
+    maxY: Infinity,
+    _locked: false,
+    init: function(target) {
+        this.superInit(target);
+        this.friction = 0.8;
+        this.on('attached', this._attached);
+    },
+    lock: function() {
+        this._locked = true;
+        this.vx = this.vy = 0;
+        return this;
+    },
+    unlock: function() {
+        this._locked = false;
+        return this;
+    },
+    // 摩擦をセット
+    setFriction: function(v) {
+        this.friction = v;
+        return this;
+    },
+    
+    setScrollType: function(type) {
+        this.scrollType = type;
+        return this;
+    },
+    
+    setMaxX: function(x) {
+        this.maxX = x;
+        return this;
+    },
+    
+    setMinX: function(x) {
+        this.minX = x;
+        return this;
+    },
+    
+    setMaxY: function(y) {
+        this.maxY = y;
+        return this;
+    },
+    
+    setMinY: function(y) {
+        this.minY = y;
+        return this;
+    },
+    
+    setMaxPosition: function(x, y) {
+        this.maxX = x;
+        this.maxY = y;
+        return this;
+    },
+    
+    setMinPosition: function(x, y) {
+        this.minX = x;
+        this.minY = y;
+        return this;
+    },
+    
+    // 枠外を描画しないようにする
+    enableClip: function() {
+        this.target.clip = function(canvas) {
+            var w = this.width;
+            var h = this.height;
+            canvas.beginPath().rect(-w * this.originX, -h * this.originY, w, h);
+        };
+        return this;
+    },
+    
+    // 枠外も描画するようにする
+    disableClip: function() {
+        this.target.clip = null;
+        return this;
+    },
+    
+    _attached: function(e) {
+        var target = this.target;
+        target.setInteractive(true);
+        this._setPointstart();
+        this._setPointmove();
+        this._setPointend();
+        this._setEnterframe();
+    },
+    
+    _setPointstart: function() {
+        var self = this;
+        this.target.on('pointstart', function(e) {
+            self.pointing = true;
+        });
+    },
+    _setPointmove: function() {
+        var self = this;
+        this.target.on('pointmove', function(e) {
+            if (self._locked) return;
+            self.getScrollMethod().move.call(this, e, self);
+        });
+    },
+    _setPointend: function() {
+        var self = this;
+        this.target.on('pointend', function(e) {
+            self.pointing = false;
+            if (self._locked) return;
+            self.vx = e.pointer.fx;
+            self.vy = e.pointer.fy;
+        });
+    },
+    
+    _setEnterframe: function() {
+        var self = this;
+        this.target.on('enterframe', function(e) {
+            if (self._locked) return;
+            if(self.pointing === false){
+                self.getScrollMethod().update(self);
+            }
+        }, this);
+    },
+    
+    getScrollMethod: function() {
+        return Scrollable.SCROLL_METHOD_MAP[this.scrollType] || Scrollable.SCROLL_METHOD_MAP.normal;
+    },
+    
+    _static: {
+        SCROLL_METHOD_MAP: {
+            x: {
+                move: function(e, self) {
+                    var dx = e.pointer.dx;
+                    var maxX = self.maxX;
+                    var minX = self.minX;
+                    this.children.forEach(function(child) {
+                        child.x += dx;
+                        if (child.x > maxX) {
+                            child.x = maxX;
+                        }
+                        if (child.x < minX) {
+                            child.x = minX;
+                        }
+                    });
+                },
+                
+                update: function(self) {
+                    var target = self.target;
+                    self.vx *= self.friction;
+                    if(Math.abs(self.vx) < 1){
+                        self.vx = 0;
+                    }
+                    var vx = self.vx;
+                    var maxX = self.maxX;
+                    var minX = self.minX;
+                    target.children.forEach(function(child) {
+                        child.x += vx;
+                        if (child.x > maxX) {
+                            child.x = maxX;
+                        }
+                        if (child.x < minX) {
+                            child.x = minX;
+                        }
+                    });
+                },
+            },
+            
+            y: {
+                move: function(e, self) {
+                    var dy = e.pointer.dy;
+                    var maxY = self.maxY;
+                    var minY = self.minY;
+                    this.children.forEach(function(child) {
+                        child.y += dy;
+                        if (child.y > maxY) {
+                            child.y = maxY;
+                        }
+                        if (child.y < minY) {
+                            child.y = minY;
+                        }
+                    });
+                },
+                update: function(self) {
+                    var target = self.target;
+                    self.vy *= self.friction;
+                    if(Math.abs(self.vy) < 1){
+                        self.vy= 0;
+                    }
+                    var vy = self.vy;
+                    var maxY = self.maxY;
+                    var minY = self.minY;
+                    target.children.forEach(function(child) {
+                        child.y += vy;
+                        if (child.y > maxY) {
+                            child.y = maxY;
+                        }
+                        if (child.y < minY) {
+                            child.y = minY;
+                        }
+                    });
+                },
+            },
+            
+            normal: {
+                move: function(e, self) {
+                    var p = e.pointer;
+                    var key = Math.abs(p.dx) < Math.abs(p.dy) ? 'y' : 'x';
+                    var v = p['d' + key];
+                    var max = self['max' + key.toUpperCase()];
+                    var min = self['min' + key.toUpperCase()];
+                    this.children.forEach(function(child) {
+                        child[key] += v;
+                        if (child[key] > max) {
+                            child[key] = max;
+                        }
+                        if (child[key] < min) {
+                            child[key] = min;
+                        }
+                    });
+                },
+                
+                update: function(self) {
+                    // 移動量が大きい方のみ処理する
+                    var key = Math.abs(self.vx) < Math.abs(self.vy) ? 'y' : 'x';
+                    var vkey = 'v' + key;
+                    var target = self.target;
+                    self[vkey] *= self.friction;
+                    if(Math.abs(self[vkey]) < 1){
+                        self[vkey] = 0;
+                    }
+                    
+                    var v = self[vkey];
+                    var max = self['max' + key.toUpperCase()];
+                    var min = self['min' + key.toUpperCase()];
+                    target.children.forEach(function(child) {
+                        child[key] += v;
+                        if (child[key] > max) {
+                            child[key] = max;
+                        }
+                        if (child[key] < min) {
+                            child[key] = min;
+                        }
+                    });
+                    
+                    // 階段状に移動してしまう対策
+                    self.vx = self.vy = 0;
+                    self[vkey] = v;
+                },
+            },
+            
+            flick: {
+                move: function(e, self) {
+                    var pos = {
+                        x: e.pointer.dx,
+                        y: e.pointer.dy,
+                    };
+                    var maxX = self.maxX;
+                    var maxY = self.maxY;
+                    var minX = self.minX;
+                    var minY = self.minY;
+                    this.children.forEach(function(child) {
+                        child.position.add(pos);
+                        
+                        if (child.x > maxX) {
+                            child.x = maxX;
+                        }
+                        
+                        if (child.x < minX) {
+                            child.x = minX;
+                        }
+                        
+                        if (child.y > maxY) {
+                            child.y = maxY;
+                        }
+                        
+                        if (child.y < minY) {
+                            child.y = minY;
+                        }
+                    });
+                },
+                
+                update: function(self) {
+                    var target = self.target;
+                    self.vx *= self.friction;
+                    self.vy *= self.friction;
+                    
+                    if(Math.abs(self.vx) < 1){
+                        self.vx = 0;
+                    }
+                    
+                    if(Math.abs(self.vy) < 1){
+                        self.vy = 0;
+                    }
+                    
+                    var pos = {
+                        x: self.vx,
+                        y: self.vy,
+                    };
+                    var maxX = self.maxX;
+                    var maxY = self.maxY;
+                    var minX = self.minX;
+                    var minY = self.minY;
+                    target.children.forEach(function(child) {
+                        child.position.add(pos);
+                        
+                        if (child.x > maxX) {
+                            child.x = maxX;
+                        }
+                        
+                        if (child.x < minX) {
+                            child.x = minX;
+                        }
+                        
+                        if (child.y > maxY) {
+                            child.y = maxY;
+                        }
+                        
+                        if (child.y < minY) {
+                            child.y = minY;
+                        }
+                    });
+                },
+            },
+            
+        }
+    }
 });
 
 // window.onerror = function(message) {
