@@ -637,18 +637,24 @@ phina.define('BlockSelectScene', {
         showArrow();
 
         let pointStartTime;
+        let pointStartDy;
 
         // ブロックを並べる
         function addSampleBlock(panel, name, x, y) {
             const block = Block({name: name, sampleMode: true, hideArrows: true});
             block.addChildTo(panel);
             block.setPosition(x, y);
-            block.on("pointstart", () => {
+            block.on("pointstart", (e) => {
                 pointStartTime = (new Date()).getTime();
+                pointStartDy = e.pointer.dy;
             });
-            block.on("pointend", () => {
-                // 0.2秒以内に指を離したなら、タップしたと判定
-                if ((new Date()).getTime() - pointStartTime > 200) {
+            block.on("pointend", (e) => {
+                // 0.1秒以内に指を離したなら、タップしたと判定
+                if ((new Date()).getTime() - pointStartTime > 100) {
+                    return;
+                }
+                // Y座標が同じなら、タップしたと判定
+                if (pointStartDy !== e.pointer.dy) {
                     return;
                 }
                 selectedBlock.changeBlock(block.name, true, arrowOK, arrowNG);
@@ -713,7 +719,7 @@ phina.define('BlockSelectScene', {
             strokeWidth: 0,
         }).addChildTo(this);
 
-        const scrollable = Scrollable().attachTo(blockPanel).enableClip().setScrollType("y").setFriction(0);
+        const scrollable = Scrollable().attachTo(blockPanel).enableClip().setScrollType("y");//.setFriction(0);
         scrollable.setMinY(-800);
         scrollable.setMaxY(0);
 
