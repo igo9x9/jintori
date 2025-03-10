@@ -1676,7 +1676,7 @@ phina.define('BattleMenuScene', {
         });
 
         const gotoTitleButton = BasicButton({
-            text: "対戦を終了する",
+            text: "この対戦を終了する",
             width: 320,
             height: 80,
             primary: true,
@@ -2336,7 +2336,7 @@ phina.define('WhatIsFreeScene', {
             height: this.height - 600,
         }).addChildTo(this).setPosition(self.gridX.center(), self.gridY.center());
 
-        label.text = "ここでは、敵のプログラムを自由に変更できます。\n\nまた、誰かが公開したプログラムを敵のプログラムとして読み込んだ場合、ここで対決します。";
+        label.text = "ここでは、敵のプログラムを自由に変更できます。\n\nまた、誰かが公開したプログラムを敵のプログラムとして読み込んで、ここで対決することができます。";
 
         this.on("pointstart", function() {
             if (param && param.callback) {
