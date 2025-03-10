@@ -87,6 +87,13 @@ ASSETS = {
         "howToArrow": "img/howToArrow.png",
         "question": "img/question.png",
         "exclamation": "img/exclamation.png",
+
+        "ready": "img/ready.png",
+        "go": "img/start.png",
+        "win": "img/win.png",
+        "lose": "img/lose.png",
+        "draw": "img/draw.png",
+
     },
     spritesheet: {
         "nekoSpriteSheet": "neko.json",
@@ -165,16 +172,23 @@ phina.define('TitleScene', {
             width: this.height
         });
 
-        for (let x = 0; x < gridX.columns; x = x + 1) {
-            for (let y = 0; y < gridY.columns; y = y + 1) {
-                const i = Math.floor(Math.random() * blocks.length);
-                const b = Sprite(blocks[i]).addChildTo(this).setPosition(gridX.span(x) + 32, gridY.span(y) + 32);
-                b.alpha = 0.1;
-            }
-        }
+        // for (let x = 0; x < gridX.columns; x = x + 1) {
+        //     for (let y = 0; y < gridY.columns; y = y + 1) {
+        //         const i = Math.floor(Math.random() * blocks.length);
+        //         const b = Sprite(blocks[i]).addChildTo(this).setPosition(gridX.span(x) + 32, gridY.span(y) + 32);
+        //         b.alpha = 0.1;
+        //     }
+        // }
 
         Sprite("logo").addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-1));
         Sprite("title").addChildTo(this).setPosition(this.gridX.center(-0.2), this.gridY.center(-2.9));
+
+        Label({
+            text: "Ver " + version,
+            fill: "black",
+            fontWeight: 800,
+            fontSize: 20,
+        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(0.8));
 
         Label({
             text: "TAP TO START",
@@ -240,7 +254,7 @@ phina.define('EnemySelectScene', {
 
 
         Label({
-            text: "対戦相手",
+            text: "だれと対戦相手する？",
             fontSize: 40,
             fill: "black",
             fontWeight: 800,
@@ -954,10 +968,10 @@ phina.define("Cat", {
 
             // すでに自分の石があるなら置けないので終了
             if (battleField[self.ny][self.nx] && battleField[self.ny][self.nx].name === color + "Stone") {
-                // 「！」を出すアニメーション
-                const exclamation = Sprite("exclamation").addChildTo(param.catPanel);
-                exclamation.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
-                setTimeout(function() { exclamation.remove()}, 400);
+                // 「？」を出すアニメーション
+                const question = Sprite("question").addChildTo(param.catPanel);
+                question.setPosition(param.field.gridX.span(self.nx), param.field.gridY.span(self.ny));
+                setTimeout(function() { question.remove()}, 400);
                 return;
             }
 
@@ -1563,16 +1577,16 @@ phina.define('BattleScene', {
     gameEnd: function () {
         const self = this;
         self.gameStartFlg = false;
-        Label({
-            text: "TIME UP",
-            fontSize: 60,
-            fill: "white",
-            fontWeight: 800,
-            stroke: "black",
-            strokeWidth: 10,
-        }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-4))
-        .tweener.wait(500)
-        .call(function () {
+        // Label({
+        //     text: "試合終了",
+        //     fontSize: 60,
+        //     fill: "white",
+        //     fontWeight: 800,
+        //     stroke: "black",
+        //     strokeWidth: 10,
+        // }).addChildTo(this).setPosition(this.gridX.center(), this.gridY.center(-4))
+        // .tweener.wait(500)
+        // .call(function () {
 
             // const backButton = BasicButton({
             //     width: 250,
@@ -1585,69 +1599,86 @@ phina.define('BattleScene', {
             // });
 
             if (self.whiteAreaNumLabel.text > self.blackAreaNumLabel.text) {
-                Label({
-                    text: "WIN",
-                    fontSize: 150,
-                    fill: "white",
-                    stroke: "red",
-                    strokeWidth: 20,
-                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                // Label({
+                //     text: "WIN",
+                //     fontSize: 150,
+                //     fill: "white",
+                //     stroke: "red",
+                //     strokeWidth: 20,
+                // }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                Sprite("win").addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
                 // レベルアップ？
                 if (!self.trainingMode && self.enemyLevel >= myLevel) {
                     myLevel += 1;
                     localStorage.setItem(STORAGE_KEY.LEVEL, myLevel);
                 }
             } else if (self.whiteAreaNumLabel.text < self.blackAreaNumLabel.text) {
-                Label({
-                    text: "LOSE",
-                    fontSize: 150,
-                    fill: "white",
-                    fontWeight: 800,
-                    stroke: "darkblue",
-                    strokeWidth: 20,
-                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                // Label({
+                //     text: "LOSE",
+                //     fontSize: 150,
+                //     fill: "white",
+                //     fontWeight: 800,
+                //     stroke: "darkblue",
+                //     strokeWidth: 20,
+                // }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                Sprite("lose").addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
             } else {
-                Label({
-                    text: "DRAW",
-                    fontSize: 150,
-                    fill: "white",
-                    fontWeight: 800,
-                    stroke: "darkblue",
-                    strokeWidth: 20,
-                }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                // Label({
+                //     text: "DRAW",
+                //     fontSize: 150,
+                //     fill: "white",
+                //     fontWeight: 800,
+                //     stroke: "darkblue",
+                //     strokeWidth: 20,
+                // }).addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
+                Sprite("draw").addChildTo(self).setPosition(self.gridX.center(), self.gridY.center(-1));
             }
     
-        }).play();
+        // }).play();
     },
     gameStartFlg: false,
     gameStart: function () {
         const self = this;
-        const readyLabel = Label({
-            text: "READY",
-            fontSize: 60,
-            fill: "white",
-            fontWeight: 800,
-            stroke: "black",
-            strokeWidth: 10,
-        }).addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
-        const goLabel = Label({
-            text: "GO!",
-            fontSize: 110,
-            fill: "white",
-            fontWeight: 800,
-            stroke: "black",
-            strokeWidth: 10,
-        }).addChildTo(self).setPosition(this.gridX.center(-13), this.gridY.center(-0.5));
-        readyLabel.tweener
+        // const readyLabel = Label({
+        //     text: "READY",
+        //     fontSize: 60,
+        //     fill: "white",
+        //     fontWeight: 800,
+        //     stroke: "black",
+        //     strokeWidth: 10,
+        // }).addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
+        // const goLabel = Label({
+        //     text: "GO!",
+        //     fontSize: 110,
+        //     fill: "white",
+        //     fontWeight: 800,
+        //     stroke: "black",
+        //     strokeWidth: 10,
+        // }).addChildTo(self).setPosition(this.gridX.center(-13), this.gridY.center(-0.5));
+        // readyLabel.tweener
+        //     .to({x: this.gridX.center()}, 100, "easeOut")
+        //     .wait(600)
+        //     .call(function () {
+        //         goLabel.tweener.to({x: self.gridX.center()}, 100, "easeOut").play();
+        //     })
+        //     .wait(800)
+        //     .call(function () {
+        //         readyLabel.remove();
+        //         goLabel.remove();
+        //         self.gameStartFlg = true;
+        //     }).play();
+        const readySprite = Sprite("ready").addChildTo(self).setPosition(this.gridX.center(-10), this.gridY.center(-2));
+        const startSprite = Sprite("go").addChildTo(self).setPosition(this.gridX.center(-14), this.gridY.center());
+        readySprite.tweener
             .to({x: this.gridX.center()}, 100, "easeOut")
             .wait(600)
             .call(function () {
-                goLabel.tweener.to({x: self.gridX.center()}, 100, "easeOut").play();
+                startSprite.tweener.to({x: self.gridX.center()}, 100, "easeOut").play();
             })
             .wait(800)
             .call(function () {
-                readyLabel.remove();
-                goLabel.remove();
+                readySprite.remove();
+                startSprite.remove();
                 self.gameStartFlg = true;
             }).play();
     },
@@ -1720,7 +1751,7 @@ phina.define('BattleMenuScene', {
         const saveButton = BasicButton({
             text: "敵のプログラムを見る",
             width: 320,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(5))
@@ -1735,7 +1766,7 @@ phina.define('BattleMenuScene', {
         const clearButton = BasicButton({
             text: "最初からやり直す",
             width: 320,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(7))
@@ -1747,7 +1778,7 @@ phina.define('BattleMenuScene', {
         const gotoTitleButton = BasicButton({
             text: "対戦を終了する",
             width: 320,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(9))
@@ -1800,7 +1831,7 @@ phina.define('ProgramingMenuScene', {
         const saveButton = BasicButton({
             text: "倉庫に保管する",
             width: 300,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(4))
@@ -1812,7 +1843,7 @@ phina.define('ProgramingMenuScene', {
         const loadButton = BasicButton({
             text: "倉庫から読み込む",
             width: 300,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(6))
@@ -1824,7 +1855,7 @@ phina.define('ProgramingMenuScene', {
         const clearButton = BasicButton({
             text: "プログラムをクリア",
             width: 300,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(8))
@@ -1842,7 +1873,7 @@ phina.define('ProgramingMenuScene', {
         const shareButton = BasicButton({
             text: "プログラムをシェア",
             width: 300,
-            height: 50,
+            height: 80,
             primary: true,
         }).addChildTo(self)
         .setPosition(self.gridX.center(), self.gridY.span(10))
@@ -2889,6 +2920,10 @@ phina.define('Block', {
         this.on("pointstay", function() {
 
             if (self.sampleMode) {
+                return;
+            }
+
+            if (!params.trainingMode && params.playerOrEnemy === "enemy") {
                 return;
             }
 
